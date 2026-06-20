@@ -1,7 +1,9 @@
 import { create } from 'zustand';
 
+const MAX_GALLERY_DISPLAY = 12;
+
 export const useStore = create((set, get) => ({
-  appStatus: 'loading',
+  appStatus: 'intro',
   score: 0,
   currentPhrase: null,
   currentBeat: null,
@@ -12,6 +14,8 @@ export const useStore = create((set, get) => ({
   currentPosition: 0,
   shutterSpeed: 1.0,
   isMobile: false,
+  isPaused: false,
+  cursorPosition: { x: 0.5, y: 0.5 },
 
   setAppStatus: (status) => set({ appStatus: status }),
   incrementScore: (amount) => set((state) => ({ score: state.score + amount })),
@@ -22,6 +26,21 @@ export const useStore = create((set, get) => ({
   setCurrentPosition: (position) => set({ currentPosition: position }),
   setShutterSpeed: (speed) => set({ shutterSpeed: Math.max(0.1, Math.min(3.0, speed)) }),
   setIsMobile: (val) => set({ isMobile: val }),
+  setCursorPosition: (x, y) => set({ cursorPosition: { x, y } }),
+
+  togglePause: () => {
+    const state = get();
+    const player = state.player;
+    if (!player) return;
+
+    if (state.isPaused) {
+      player.requestPlay();
+      set({ isPaused: false });
+    } else {
+      player.requestPause();
+      set({ isPaused: true });
+    }
+  },
 
   captureLyric: (lyricId) => {
     const state = get();
@@ -29,6 +48,11 @@ export const useStore = create((set, get) => ({
     if (lyric && !state.capturedLyrics.some(l => l.id === lyricId)) {
       set({ capturedLyrics: [...state.capturedLyrics, lyric] });
     }
+  },
+
+  getDisplayedCaptures: () => {
+    const state = get();
+    return state.capturedLyrics.slice(-MAX_GALLERY_DISPLAY);
   },
 
   addActiveLyric: (lyric) => set((state) => ({
@@ -39,3 +63,5 @@ export const useStore = create((set, get) => ({
   })),
   clearActiveLyrics: () => set({ activeLyrics: [] }),
 }));
+
+export { MAX_GALLERY_DISPLAY };
