@@ -60,10 +60,10 @@ export const HUD = () => {
       flexDirection: 'column',
       justifyContent: 'space-between',
       color: 'white',
-      fontFamily: '"Segoe UI", sans-serif',
+      fontFamily: '"M PLUS 1p", sans-serif',
     }}>
       <div style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ margin: 0, textShadow: '0 2px 8px rgba(0,0,0,0.6)', fontSize: '1.1rem', fontWeight: 300, letterSpacing: '3px' }}>
+        <h2 style={{ margin: 0, textShadow: '0 2px 8px rgba(0,0,0,0.6)', fontSize: '1.1rem', fontWeight: 500, letterSpacing: '3px', fontFamily: '"Orbitron", sans-serif' }}>
           SCORE: <span style={{ color: '#39FFDC', fontWeight: 600 }}>{score}</span>
         </h2>
         {appStatus === 'playing' && (

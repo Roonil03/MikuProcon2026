@@ -32,7 +32,8 @@ const PolaroidCard = ({ lyric, index }) => {
         }} />
         <span style={{
           fontSize: '1.8rem',
-          fontWeight: 'bold',
+          fontWeight: 700,
+          fontFamily: '"Zen Kaku Gothic New", sans-serif',
           color: '#39FFDC',
           textShadow: '0 0 12px rgba(57,255,220,0.6)',
           letterSpacing: '2px',
@@ -44,7 +45,7 @@ const PolaroidCard = ({ lyric, index }) => {
       </div>
       <div style={{
         marginTop: '8px',
-        fontFamily: '"Courier New", monospace',
+        fontFamily: '"Orbitron", monospace',
         fontSize: '0.7rem',
         color: '#888',
         textAlign: 'left',
@@ -83,9 +84,9 @@ export const ResultGallery = () => {
         display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
         background: 'rgba(0,0,0,0.95)',
         color: '#aaa',
-        fontFamily: 'sans-serif',
+        fontFamily: '"M PLUS 1p", sans-serif',
       }}>
-        <h2 style={{ marginBottom: '10px', color: '#fff' }}>No Captures</h2>
+        <h2 style={{ marginBottom: '10px', color: '#fff', fontFamily: '"Orbitron", sans-serif' }}>No Captures</h2>
         <p>No lyrics were captured during this session.</p>
       </div>
     );
@@ -98,7 +99,7 @@ export const ResultGallery = () => {
       display: 'flex', flexDirection: 'column',
       background: 'rgba(5,5,5,0.97)',
       color: 'white',
-      fontFamily: 'sans-serif',
+      fontFamily: '"M PLUS 1p", sans-serif',
       overflow: 'auto',
     }}>
       <div style={{
@@ -107,7 +108,8 @@ export const ResultGallery = () => {
       }}>
         <h1 style={{
           fontSize: '2rem',
-          fontWeight: 300,
+          fontWeight: 600,
+          fontFamily: '"Orbitron", sans-serif',
           letterSpacing: '6px',
           textTransform: 'uppercase',
           marginBottom: '8px',
@@ -115,7 +117,7 @@ export const ResultGallery = () => {
         }}>
           Parallax Archive
         </h1>
-        <p style={{ color: '#888', fontSize: '0.9rem' }}>
+        <p style={{ color: '#888', fontSize: '0.9rem', fontFamily: '"M PLUS 1p", sans-serif' }}>
           Final Score: {score} | Captured: {capturedLyrics.length} frames
         </p>
       </div>
@@ -146,7 +148,9 @@ export const ResultGallery = () => {
           onClick={handleDownload}
           style={{
             padding: '14px 36px',
-            fontSize: '1rem',
+            fontSize: '0.85rem',
+            fontFamily: '"Orbitron", sans-serif',
+            fontWeight: 500,
             background: 'transparent',
             color: '#39FFDC',
             border: '1px solid #39FFDC',
