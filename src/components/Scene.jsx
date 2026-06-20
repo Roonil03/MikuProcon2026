@@ -3,7 +3,7 @@ import { Canvas, useFrame, useThree, extend } from '@react-three/fiber';
 import { PerspectiveCamera, Text, shaderMaterial } from '@react-three/drei';
 import { EffectComposer, DepthOfField, ChromaticAberration, Bloom } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
-import { ARButton, XR } from '@react-three/xr';
+import { XR, createXRStore } from '@react-three/xr';
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { useStore } from '../store/useStore';
@@ -364,31 +364,15 @@ const HitDetectionLayer = () => {
   );
 };
 
+export const xrStore = createXRStore();
+
 export const Scene = () => {
   const arMode = useStore(state => state.arMode);
 
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1, backgroundColor: arMode ? 'transparent' : '#050505' }}>
-      <ARButton 
-        style={{
-          display: arMode ? 'block' : 'none',
-          position: 'absolute',
-          top: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 100,
-          background: 'rgba(57,255,220,0.1)',
-          border: '1px solid #39FFDC',
-          color: '#39FFDC',
-          padding: '8px 16px',
-          fontFamily: '"Orbitron", sans-serif',
-          fontSize: '0.8rem',
-          cursor: 'pointer',
-          letterSpacing: '2px',
-        }}
-      />
       <Canvas>
-        <XR>
+        <XR store={xrStore}>
           <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={75} />
           <CameraController />
           <ambientLight intensity={0.5} />

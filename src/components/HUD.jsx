@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useStore, MAX_GALLERY_DISPLAY } from '../store/useStore';
 import { ASSETS } from '../constants/assets';
+import { xrStore } from './Scene';
 
 export const HUD = () => {
   const { appStatus, score, capturedLyrics, isPaused, arMode } = useStore();
@@ -70,7 +71,13 @@ export const HUD = () => {
         {appStatus === 'playing' && (
           <div style={{ display: 'flex', gap: '10px' }}>
             <button
-              onClick={() => useStore.getState().toggleARMode()}
+              onClick={() => {
+                const state = useStore.getState();
+                state.toggleARMode();
+                if (!state.arMode) {
+                  xrStore.enterAR();
+                }
+              }}
               style={{
                 background: 'rgba(57,255,220,0.1)',
                 border: '1px solid #39FFDC',
