@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 export const useStore = create((set, get) => ({
-  appStatus: 'loading', // 'loading', 'ready', 'playing', 'results'
+  appStatus: 'loading',
   score: 0,
   currentPhrase: null,
   currentBeat: null,
@@ -10,6 +10,8 @@ export const useStore = create((set, get) => ({
   capturedLyrics: [],
   player: null,
   currentPosition: 0,
+  shutterSpeed: 1.0,
+  isMobile: false,
 
   setAppStatus: (status) => set({ appStatus: status }),
   incrementScore: (amount) => set((state) => ({ score: state.score + amount })),
@@ -18,7 +20,9 @@ export const useStore = create((set, get) => ({
   setPlayer: (player) => set({ player }),
   setLyricsData: (data) => set({ lyricsData: data }),
   setCurrentPosition: (position) => set({ currentPosition: position }),
-  
+  setShutterSpeed: (speed) => set({ shutterSpeed: Math.max(0.1, Math.min(3.0, speed)) }),
+  setIsMobile: (val) => set({ isMobile: val }),
+
   captureLyric: (lyricId) => {
     const state = get();
     const lyric = state.lyricsData.find(l => l.id === lyricId);
