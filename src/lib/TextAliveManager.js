@@ -24,7 +24,7 @@ export const initializeTextAlive = () => {
       const lyrics = [];
       let c = player.video.firstChar;
       let idCounter = 0;
-      
+
       while (c) {
         lyrics.push({
           id: idCounter++,
@@ -47,7 +47,7 @@ export const initializeTextAlive = () => {
       useStore.getState().setAppStatus('playing');
     },
     onPause: () => {
-      useStore.getState().setAppStatus('ready');
+      // Do not overwrite isPaused state here
     },
     onStop: () => {
       useStore.getState().setAppStatus('results');
