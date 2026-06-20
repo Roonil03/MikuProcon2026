@@ -16,6 +16,9 @@ export const useStore = create((set, get) => ({
   isMobile: false,
   isPaused: false,
   cursorPosition: { x: 0.5, y: 0.5 },
+  arMode: false,
+  beatPulse: 0,
+  sweepOffset: { value: 0 },
 
   setAppStatus: (status) => set({ appStatus: status }),
   incrementScore: (amount) => set((state) => ({ score: state.score + amount })),
@@ -27,6 +30,9 @@ export const useStore = create((set, get) => ({
   setShutterSpeed: (speed) => set({ shutterSpeed: Math.max(0.1, Math.min(3.0, speed)) }),
   setIsMobile: (val) => set({ isMobile: val }),
   setCursorPosition: (x, y) => set({ cursorPosition: { x, y } }),
+  triggerBeat: () => set({ beatPulse: 1.0 }),
+  decayBeat: (amount) => set((state) => ({ beatPulse: Math.max(0, state.beatPulse - amount) })),
+  toggleARMode: () => set((state) => ({ arMode: !state.arMode })),
 
   togglePause: () => {
     const state = get();

@@ -3,7 +3,7 @@ import { useStore, MAX_GALLERY_DISPLAY } from '../store/useStore';
 import { ASSETS } from '../constants/assets';
 
 export const HUD = () => {
-  const { appStatus, score, capturedLyrics, isPaused } = useStore();
+  const { appStatus, score, capturedLyrics, isPaused, arMode } = useStore();
   const crosshairRef = useRef(null);
   const [cursorPos, setCursorPos] = useState({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
 
@@ -39,6 +39,7 @@ export const HUD = () => {
     const player = useStore.getState().player;
     if (player && appStatus === 'ready') {
       player.requestPlay();
+      useStore.getState().setAppStatus('playing');
     }
   };
 
@@ -67,13 +68,31 @@ export const HUD = () => {
           SCORE: <span style={{ color: '#39FFDC', fontWeight: 600 }}>{score}</span>
         </h2>
         {appStatus === 'playing' && (
-          <div style={{
-            fontSize: '0.7rem', letterSpacing: '2px', color: '#556',
-            textTransform: 'uppercase', pointerEvents: 'auto', cursor: 'pointer',
-          }}
-            onClick={() => useStore.getState().togglePause()}
-          >
-            [ESC] Pause
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              onClick={() => useStore.getState().toggleARMode()}
+              style={{
+                background: 'rgba(57,255,220,0.1)',
+                border: '1px solid #39FFDC',
+                color: '#39FFDC',
+                padding: '6px 12px',
+                fontFamily: '"Orbitron", sans-serif',
+                fontSize: '0.7rem',
+                cursor: 'pointer',
+                letterSpacing: '2px',
+                pointerEvents: 'auto',
+              }}
+            >
+              {arMode ? 'DISABLE AR' : 'ENABLE AR VIEWFINDER'}
+            </button>
+            <div style={{
+              fontSize: '0.7rem', letterSpacing: '2px', color: '#556',
+              textTransform: 'uppercase', pointerEvents: 'auto', cursor: 'pointer',
+            }}
+              onClick={() => useStore.getState().togglePause()}
+            >
+              [ESC] Pause
+            </div>
           </div>
         )}
       </div>

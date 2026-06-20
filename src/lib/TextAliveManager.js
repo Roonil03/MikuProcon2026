@@ -15,6 +15,7 @@ export const initializeTextAlive = () => {
     mediaElement: mediaContainer,
   });
 
+  let lastBeat = null;
   player.addListener({
     onAppReady: (app) => {
       if (app.managed) return;
@@ -42,6 +43,12 @@ export const initializeTextAlive = () => {
     },
     onTimeUpdate: (position) => {
       useStore.getState().setCurrentPosition(position);
+      
+      const b = player.findBeat(position);
+      if (b && (!lastBeat || b.startTime !== lastBeat.startTime)) {
+        lastBeat = b;
+        useStore.getState().triggerBeat();
+      }
     },
     onTimerPlay: () => {
       useStore.getState().setAppStatus('playing');
