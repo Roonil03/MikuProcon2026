@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useMemo } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { PerspectiveCamera, Text } from '@react-three/drei';
 import { EffectComposer, DepthOfField, ChromaticAberration, Bloom } from '@react-three/postprocessing';
@@ -41,22 +41,23 @@ const CameraController = () => {
 
       window.addEventListener('deviceorientation', handleOrientation);
       return () => window.removeEventListener('deviceorientation', handleOrientation);
-    } else {
-      const handleMouseMove = (event) => {
-        const nx = (event.clientX / window.innerWidth) * 2 - 1;
-        const ny = (event.clientY / window.innerHeight) * 2 - 1;
-        targetRotation.current.x = -ny * 0.15;
-        targetRotation.current.y = nx * 0.15;
-      };
-
-      window.addEventListener('mousemove', handleMouseMove);
-      return () => window.removeEventListener('mousemove', handleMouseMove);
     }
+
+    return undefined;
   }, []);
 
   useFrame(() => {
-    camera.rotation.x = THREE.MathUtils.lerp(camera.rotation.x, targetRotation.current.x, 0.05);
-    camera.rotation.y = THREE.MathUtils.lerp(camera.rotation.y, targetRotation.current.y, 0.05);
+    const { isMobile, cursorPosition } = useStore.getState();
+
+    if (!isMobile) {
+      const nx = cursorPosition.x * 2 - 1;
+      const ny = cursorPosition.y * 2 - 1;
+      targetRotation.current.x = -ny * 0.12;
+      targetRotation.current.y = nx * 0.12;
+    }
+
+    camera.rotation.x = THREE.MathUtils.lerp(camera.rotation.x, targetRotation.current.x, 0.06);
+    camera.rotation.y = THREE.MathUtils.lerp(camera.rotation.y, targetRotation.current.y, 0.06);
   });
 
   return null;
@@ -149,31 +150,65 @@ const DynamicPostProcessing = () => {
   );
 };
 
-const HitDetectionLayer = () => {
-  const { viewport } = useThree();
+const performCapture = (camera, viewport) => {
+  const { currentPosition, lyricsData, captureLyric, incrementScore, isMobile, cursorPosition, shutterSpeed } = useStore.getState();
 
-  const handlePointerDown = () => {
-    const { currentPosition, lyricsData, captureLyric, incrementScore } = useStore.getState();
+  let closestLyric = null;
+  let minDiff = Infinity;
+  const timeWindow = 300 / shutterSpeed;
 
-    let closestLyric = null;
-    let minDiff = Infinity;
-
+  if (isMobile) {
     lyricsData.forEach(lyric => {
       const diff = Math.abs(lyric.startTime - currentPosition);
-      if (diff < minDiff && diff < 300) {
+      if (diff < minDiff && diff < timeWindow) {
         minDiff = diff;
         closestLyric = lyric;
       }
     });
+  } else {
+    const ndcX = cursorPosition.x * 2 - 1;
+    const ndcY = -(cursorPosition.y * 2 - 1);
 
-    if (closestLyric) {
-      const audio = new Audio(ASSETS.SFX_CLICK);
-      audio.play().catch(() => {});
+    lyricsData.forEach(lyric => {
+      const timeDiff = Math.abs(lyric.startTime - currentPosition);
+      if (timeDiff > timeWindow) return;
 
-      const scoreDelta = Math.max(0, 100 - minDiff);
-      incrementScore(Math.floor(scoreDelta));
-      captureLyric(closestLyric.id);
-    }
+      const visibleWindow = 3000 / shutterSpeed;
+      const timeUntilSung = lyric.startTime - currentPosition;
+      const zPos = (timeUntilSung / visibleWindow) * -100;
+
+      const worldPos = new THREE.Vector3(lyric.x, lyric.y, zPos);
+      worldPos.project(camera);
+
+      const dx = worldPos.x - ndcX;
+      const dy = worldPos.y - ndcY;
+      const screenDist = Math.sqrt(dx * dx + dy * dy);
+
+      if (screenDist < 0.25 && timeDiff < minDiff) {
+        minDiff = timeDiff;
+        closestLyric = lyric;
+      }
+    });
+  }
+
+  if (closestLyric) {
+    const audio = new Audio(ASSETS.SFX_CLICK);
+    audio.play().catch(() => {});
+
+    const scoreDelta = Math.max(0, 100 - minDiff);
+    incrementScore(Math.floor(scoreDelta));
+    captureLyric(closestLyric.id);
+    return true;
+  }
+
+  return false;
+};
+
+const HitDetectionLayer = () => {
+  const { viewport, camera } = useThree();
+
+  const handlePointerDown = () => {
+    performCapture(camera, viewport);
   };
 
   return (
