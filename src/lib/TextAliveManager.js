@@ -43,13 +43,13 @@ export const initializeTextAlive = () => {
     onTimeUpdate: (position) => {
       useStore.getState().setCurrentPosition(position);
     },
-    onPlay: () => {
+    onTimerPlay: () => {
       useStore.getState().setAppStatus('playing');
     },
-    onPause: () => {
+    onTimerPause: () => {
       // Do not overwrite isPaused state here
     },
-    onStop: () => {
+    onTimerStop: () => {
       useStore.getState().setAppStatus('results');
     }
   });
