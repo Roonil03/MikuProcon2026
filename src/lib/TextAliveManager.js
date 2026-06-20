@@ -18,14 +18,30 @@ export const initializeTextAlive = () => {
   player.addListener({
     onAppReady: (app) => {
       if (app.managed) return;
-      // "Shutter Chance" by Yamiagari
       player.createFromSongUrl("https://piapro.jp/t/PNpQ/20251209170719");
     },
     onVideoReady: () => {
+      const lyrics = [];
+      let c = player.video.firstChar;
+      let idCounter = 0;
+      
+      while (c) {
+        lyrics.push({
+          id: idCounter++,
+          text: c.text,
+          startTime: c.startTime,
+          endTime: c.endTime,
+          duration: c.duration,
+          x: (Math.random() - 0.5) * 8,
+          y: (Math.random() - 0.5) * 6,
+        });
+        c = c.next;
+      }
+      useStore.getState().setLyricsData(lyrics);
       useStore.getState().setAppStatus('ready');
     },
     onTimeUpdate: (position) => {
-      // Future logic for flying lyrics and beats
+      useStore.getState().setCurrentPosition(position);
     },
     onPlay: () => {
       useStore.getState().setAppStatus('playing');

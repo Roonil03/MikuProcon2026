@@ -3,7 +3,7 @@ import { useStore } from '../store/useStore';
 import { ASSETS } from '../constants/assets';
 
 export const HUD = () => {
-  const { appStatus, score } = useStore();
+  const { appStatus, score, capturedLyrics } = useStore();
 
   const handleStart = () => {
     const player = useStore.getState().player;
@@ -74,12 +74,32 @@ export const HUD = () => {
         padding: '20px',
         display: 'flex',
         gap: '10px',
-        overflowX: 'hidden',
-        background: 'linear-gradient(transparent, rgba(0,0,0,0.8))'
+        overflowX: 'auto',
+        background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
+        alignItems: 'center'
       }}>
-        <div style={{ width: '60px', height: '40px', background: 'rgba(255,255,255,0.1)', border: '1px solid #fff' }} />
-        <div style={{ width: '60px', height: '40px', background: 'rgba(255,255,255,0.1)', border: '1px solid #fff' }} />
-        <div style={{ width: '60px', height: '40px', background: 'rgba(255,255,255,0.1)', border: '1px solid #fff' }} />
+        {capturedLyrics.map(lyric => (
+          <div key={lyric.id} style={{
+            minWidth: '60px', height: '40px',
+            background: `url(${ASSETS.GALLERY_FRAME})`,
+            backgroundSize: 'cover',
+            border: '1px solid #fff',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            fontSize: '0.8rem',
+            color: 'black',
+            fontWeight: 'bold',
+            backgroundColor: 'rgba(255,255,255,0.8)'
+          }}>
+            {lyric.text}
+          </div>
+        ))}
+        {capturedLyrics.length === 0 && (
+          <div style={{ color: 'rgba(255,255,255,0.5)', fontStyle: 'italic' }}>
+            Capture lyrics to fill the gallery...
+          </div>
+        )}
       </div>
     </div>
   );

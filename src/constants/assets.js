@@ -3,5 +3,7 @@ export const ASSETS = {
   UI_SPRITE: "https://via.placeholder.com/256x256.png?text=UI+Sprite",
   CHARACTER: "https://via.placeholder.com/800x800.png?text=Character+Asset",
   SFX_CLICK: "https://www.soundjay.com/camera/camera-shutter-click-01.mp3",
-  SFX_HOVER: "https://www.soundjay.com/buttons/button-09.mp3"
+  SFX_HOVER: "https://www.soundjay.com/buttons/button-09.mp3",
+  PARTICLE_HIT: "https://via.placeholder.com/64x64.png?text=Particle",
+  GALLERY_FRAME: "https://via.placeholder.com/300x200.png?text=Gallery+Frame"
 };
