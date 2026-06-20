@@ -100,6 +100,7 @@ const LyricMesh = ({ lyric }) => {
       anchorX="center"
       anchorY="middle"
       visible={false}
+      font="https://fonts.gstatic.com/ea/notosansjp/v5/NotoSansJP-Bold.woff"
     >
       {lyric.text}
     </Text>

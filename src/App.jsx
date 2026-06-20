@@ -17,12 +17,7 @@ function App() {
     const existingPlayer = useStore.getState().player;
     if (existingPlayer) return;
 
-    const player = initializeTextAlive();
-    return () => {
-      if (player && typeof player.dispose === 'function') {
-        player.dispose();
-      }
-    };
+    initializeTextAlive();
   }, [appStatus]);
 
   return (
