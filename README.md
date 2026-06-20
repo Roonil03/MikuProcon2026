@@ -1,16 +1,51 @@
-# React + Vite
+# Magical Mirai 2026 - Shutter Chance
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the foundational codebase for the Magical Mirai 2026 Programming Contest, visualizing the song "Shutter Chance" by Yamiagari. The application simulates an interactive 3D camera lens where users capture kinetic typography synced to the beat.
 
-Currently, two official plugins are available:
+## Technology Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Vite** & **React**: Core application framework.
+- **React Three Fiber** & **Drei**: 3D scene rendering and typography manipulation.
+- **PostProcessing**: Camera lens simulation (Depth of Field, Bloom, Chromatic Aberration).
+- **Zustand**: Global application state management.
+- **GSAP**: High-performance kinematics and animations.
+- **TextAlive App API**: Millisecond-precise audio and lyric synchronization.
 
-## React Compiler
+## Setup Instructions
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+私は日本語の初心者で、現在学習中です。ここのテキストのほとんどは翻訳アプリを使用しているため、誰かを傷つけたり不快にさせる意図はありません。もし問題がありましたら、事前にお詫び申し上げます。
+
+# マジカルミライ 2026 - シャッターチャンス
+
+これは、マジカルミライ 2026 プログラミング・コンテストの基盤となるコードベースであり、夜未アガリの楽曲「シャッターチャンス」を視覚化します。このアプリケーションは、ユーザーがビートに合わせてキネティック・タイポグラフィをキャプチャするインタラクティブな3Dカメラレンズをシミュレートしています。
+
+## 技術スタック
+
+- **Vite** と **React**: アプリケーションのコアフレームワーク。
+- **React Three Fiber** と **Drei**: 3Dシーンのレンダリングとタイポグラフィ操作。
+- **PostProcessing**: カメラレンズのシミュレーション（被写界深度、ブルーム、色収差）。
+- **Zustand**: グローバルアプリケーション状態管理。
+- **GSAP**: 高性能なキネマティクスとアニメーション。
+- **TextAlive App API**: ミリ秒精度のオーディオと歌詞の同期。
+
+## セットアップ手順
+
+1. 依存関係をインストールします:
+   ```bash
+   npm install
+   ```
+2. 開発サーバーを起動します:
+   ```bash
+   npm run dev
+   ```
