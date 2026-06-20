@@ -115,7 +115,7 @@ export const ResultGallery = () => {
           marginBottom: '8px',
           color: '#39FFDC',
         }}>
-          Parallax Archive
+          Roonil03
         </h1>
         <p style={{ color: '#888', fontSize: '0.9rem', fontFamily: '"M PLUS 1p", sans-serif' }}>
           Final Score: {score} | Captured: {capturedLyrics.length} frames

@@ -141,7 +141,7 @@ export const IntroScreen = () => {
               textTransform: 'uppercase',
               fontWeight: 500,
             }}>
-              Parallax Archive
+              Roonil03
             </span>
             <div style={{ height: '1px', width: '40px', background: 'linear-gradient(to left, transparent, rgba(57,255,220,0.4))' }} />
           </div>
