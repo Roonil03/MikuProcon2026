@@ -82,10 +82,9 @@ const MikuParticles = React.forwardRef((props, ref) => {
     const goldR = 230 / 255, goldG = 199 / 255, goldB = 137 / 255;
     const blueR = 143 / 255, blueG = 199 / 255, blueB = 234 / 255;
     for (let i = 0; i < count; i++) {
-      const blend = Math.random();
-      c[i * 3] = goldR * blend + blueR * (1 - blend);
-      c[i * 3 + 1] = goldG * blend + blueG * (1 - blend);
-      c[i * 3 + 2] = goldB * blend + blueB * (1 - blend);
+      c[i * 3] = blueR;
+      c[i * 3 + 1] = blueG;
+      c[i * 3 + 2] = blueB;
     }
     return c;
   }, [mikuCoords]);
@@ -133,10 +132,10 @@ const MikuParticles = React.forwardRef((props, ref) => {
         <bufferGeometry />
         <pointsMaterial
           vertexColors
-          size={2}
+          size={0.1}
           sizeAttenuation
           transparent
-          opacity={1.0}
+          opacity={0.8}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
         />
@@ -291,7 +290,7 @@ export const IntroScreen = () => {
       flexDirection: 'column',
       justifyContent: 'center',
       alignItems: 'center',
-      background: 'linear-gradient(160deg, #0d0d12 0%, #111118 40%, #0f1016 100%)',
+      background: '#000000',
       color: 'white',
       overflow: 'hidden',
     }}>
@@ -447,7 +446,7 @@ export const IntroScreen = () => {
               padding: '22px 26px',
               lineHeight: '1.9',
               fontSize: language === 'ja' ? '0.95rem' : '1.1rem',
-              color: '#aaa',
+              color: COOL_BLUE,
               fontFamily: bodyFont,
             }}>
               <div style={{
