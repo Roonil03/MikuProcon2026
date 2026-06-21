@@ -132,7 +132,7 @@ const MikuParticles = React.forwardRef((props, ref) => {
         <bufferGeometry />
         <pointsMaterial
           vertexColors
-          size={0.1}
+          size={0.06}
           sizeAttenuation
           transparent
           opacity={0.8}
@@ -522,9 +522,9 @@ export const IntroScreen = () => {
               </button>
 
               <div style={{
-                marginTop: '20px',
+                marginTop: '15px',
                 fontFamily: '"Press Start 2P", sans-serif',
-                fontSize: '0.65rem',
+                fontSize: '0.45rem',
                 color: '#555',
                 letterSpacing: '2px',
               }}>

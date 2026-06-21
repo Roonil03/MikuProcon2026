@@ -50,11 +50,9 @@ async function main() {
 
     console.log(`Found ${edges.length} edge pixels.`);
 
-    // We want around 1500 points
-    const targetPoints = 1500;
+    const targetPoints = 15000;
     const sampledEdges = [];
     
-    // Uniform sampling
     if (edges.length > 0) {
         const step = Math.max(1, edges.length / targetPoints);
         for (let i = 0; i < targetPoints; i++) {
@@ -63,13 +61,10 @@ async function main() {
         }
     }
 
-    // Convert to normalized coordinates (-3 to 3 scale)
     const scale = 8.0;
     const pointsCode = sampledEdges.map(p => {
         const nx = ((p.x / width) - 0.5) * scale;
-        // Invert Y so up is positive
         const ny = (0.5 - (p.y / height)) * scale * (height / width);
-        // Small random Z for volume
         const nz = (Math.random() - 0.5) * 0.1;
         return `{ x: ${nx.toFixed(4)}, y: ${ny.toFixed(4)}, z: ${nz.toFixed(4)} }`;
     });
@@ -79,8 +74,7 @@ async function main() {
     ${pointsCode.join(',\n    ')}
   ];
 
-  // If we need exactly 1500, we add some jittered duplicates just in case
-  while (points.length < 1500) {
+  while (points.length < 15000) {
     const source = points[Math.floor(Math.random() * points.length)];
     if (!source) break;
     points.push({
