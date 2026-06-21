@@ -103,17 +103,19 @@ const SoundscapeMaterial = shaderMaterial(
     varying float vNoise;
 
     void main() {
-      vec3 colorBase = vec3(0.02, 0.02, 0.03);
-      vec3 colorPulse = vec3(0.90, 0.78, 0.54);
+      vec3 colorCoolBlue = vec3(0.56, 0.78, 0.92);
+      vec3 colorWarmGold = vec3(0.90, 0.78, 0.54);
 
       float pulse = max(0.0, vNoise) * uIntensity;
-      vec3 finalColor = mix(colorBase, colorPulse, pulse * 0.5);
+      vec3 finalColor = mix(colorCoolBlue, colorWarmGold, pulse);
 
       float gridX = smoothstep(0.95, 1.0, fract(vUv.x * 20.0));
       float gridY = smoothstep(0.95, 1.0, fract(vUv.y * 20.0));
-      finalColor += vec3(gridX + gridY) * colorPulse * 0.2 * uIntensity;
+      float gridLine = max(gridX, gridY);
 
-      gl_FragColor = vec4(finalColor, 1.0);
+      float alpha = max(pulse * 0.6, gridLine * 0.15);
+      
+      gl_FragColor = vec4(finalColor, min(1.0, alpha));
     }
   `
 );

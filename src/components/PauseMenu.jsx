@@ -14,7 +14,7 @@ export const PauseMenu = () => {
 
   const bodyFont = language === 'ja'
     ? '"Shizuru", system-ui'
-    : '"Festive", cursive';
+    : '"Londrina Shadow", sans-serif';
 
   const playHover = () => {
     const audio = new Audio(ASSETS.SFX_HOVER);
@@ -70,7 +70,7 @@ export const PauseMenu = () => {
         </div>
 
         <h2 style={{
-          fontFamily: '"Festive", cursive',
+          fontFamily: '"Londrina Shadow", sans-serif',
           fontSize: '2rem',
           fontWeight: 400,
           letterSpacing: '6px',
@@ -108,7 +108,7 @@ export const PauseMenu = () => {
             width: '200px',
             padding: '13px 0',
             margin: '0 auto',
-            fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Festive", cursive',
+            fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Londrina Shadow", sans-serif',
             fontSize: language === 'ja' ? '0.9rem' : '1.2rem',
             fontWeight: 400,
             background: 'transparent',

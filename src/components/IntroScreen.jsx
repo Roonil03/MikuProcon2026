@@ -48,7 +48,7 @@ export const IntroScreen = () => {
 
   const bodyFont = language === 'ja'
     ? '"Shizuru", system-ui'
-    : '"Festive", cursive';
+    : '"Londrina Shadow", sans-serif';
 
   useEffect(() => {
     const t1 = setTimeout(() => setTitleVisible(true), 300);
@@ -133,7 +133,7 @@ export const IntroScreen = () => {
           border: `1px solid ${WARM_GOLD_HALF}`,
           color: WARM_GOLD,
           padding: '6px 16px',
-          fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Festive", cursive',
+          fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Londrina Shadow", sans-serif',
           fontSize: language === 'ja' ? '0.85rem' : '1rem',
           cursor: 'pointer',
           letterSpacing: '2px',
@@ -196,7 +196,7 @@ export const IntroScreen = () => {
           </div>
 
           <h1 style={{
-            fontFamily: '"Festive", cursive',
+            fontFamily: '"Londrina Shadow", sans-serif',
             fontSize: '3.2rem',
             fontWeight: 400,
             letterSpacing: '6px',
@@ -221,7 +221,7 @@ export const IntroScreen = () => {
           }}>
             <div style={{ height: '1px', width: '40px', background: `linear-gradient(to right, transparent, ${WARM_GOLD_DIM})` }} />
             <span style={{
-              fontFamily: '"Festive", cursive',
+              fontFamily: '"Londrina Shadow", sans-serif',
               fontSize: '1rem',
               color: WARM_GOLD_HALF,
               letterSpacing: '4px',
@@ -291,7 +291,7 @@ export const IntroScreen = () => {
             onClick={handleBegin}
             onMouseEnter={playHover}
             style={{
-              fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Festive", cursive',
+              fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Londrina Shadow", sans-serif',
               padding: '14px 52px',
               fontSize: language === 'ja' ? '1rem' : '1.3rem',
               fontWeight: 400,
@@ -338,7 +338,7 @@ export const IntroScreen = () => {
         left: 0,
         width: '100%',
         textAlign: 'center',
-        fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Festive", cursive',
+        fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Londrina Shadow", sans-serif',
         fontSize: language === 'ja' ? '0.65rem' : '0.8rem',
         color: '#444',
         padding: '0 20px',

@@ -14,7 +14,7 @@ export const HUD = () => {
 
   const bodyFont = language === 'ja'
     ? '"Shizuru", system-ui'
-    : '"Festive", cursive';
+    : '"Londrina Shadow", sans-serif';
 
   useEffect(() => {
     const handleMove = (e) => {
