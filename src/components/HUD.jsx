@@ -85,23 +85,32 @@ export const HUD = () => {
             {/* AR Button only shown on mobile devices */}
             {isMobile && (
               <button
-                onClick={() => {
-                  const state = useStore.getState();
-                  state.toggleARMode();
-                  if (!state.arMode) {
-                    xrStore.enterAR();
-                  }
-                }}
                 style={{
-                  background: 'rgba(230,199,137,0.1)',
-                  border: `1px solid ${WARM_GOLD}`,
+                  padding: '8px 16px',
+                  background: 'transparent',
+                  border: `1px solid ${WARM_GOLD_HALF}`,
                   color: WARM_GOLD,
-                  padding: '6px 12px',
                   fontFamily: '"Orbitron", sans-serif',
-                  fontSize: '0.7rem',
-                  cursor: 'pointer',
+                  fontSize: '0.75rem',
                   letterSpacing: '2px',
                   pointerEvents: 'auto',
+                }}
+                onClick={() => {
+                  if (arMode) {
+                    useStore.getState().setArMode(false);
+                  } else {
+                    if (!navigator.xr) {
+                      alert("WebXR AR is not supported on this browser. Try using Google Chrome for Android, or a WebXR viewer app.");
+                      return;
+                    }
+                    xrStore.enterAR().then(() => {
+                      useStore.getState().setArMode(true);
+                    }).catch(err => {
+                      console.error("AR failed", err);
+                      alert("Failed to start AR. Make sure camera permissions are granted.");
+                      useStore.getState().setArMode(false);
+                    });
+                  }
                 }}
               >
                 {arMode ? 'DISABLE AR' : 'AR VIEWFINDER'}
