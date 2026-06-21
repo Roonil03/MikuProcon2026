@@ -1,4 +1,4 @@
-# Roonil03 - Magical Mirai 2026
+# Magical Mirai 2026 - Shutter Chance
 
 This is the codebase for the Magical Mirai 2026 Programming Contest, visualizing the song "Shutter Chance" by Yamiagari. The application simulates an interactive 3D camera lens where users capture kinetic typography synced to the beat, featuring full WebXR Augmented Reality (AR) support on mobile devices.
 
@@ -31,9 +31,6 @@ This is the codebase for the Magical Mirai 2026 Programming Contest, visualizing
    ```bash
    npm run dev
    ```
-3. Deployment:
-   - This project includes a GitHub Actions workflow (`.github/workflows/deploy.yml`) to automatically build and deploy to GitHub Pages upon pushing to the `main` branch.
-
 ## Credits & Contributions
 For a full list of contributions, libraries, fonts, and creative commons assets used in this project, please see the [CREDITS.md](./CREDITS.md) file.
 
@@ -41,7 +38,7 @@ For a full list of contributions, libraries, fonts, and creative commons assets 
 
 私は日本語の初心者で、現在学習中です。ここのテキストのほとんどは翻訳アプリを使用しているため、誰かを傷つけたり不快にさせる意図はありません。もし問題がありましたら、事前にお詫び申し上げます。
 
-# Roonil03 - マジカルミライ 2026
+# マジカルミライ 2026 - シャッターチャンス
 
 これは、マジカルミライ 2026 プログラミング・コンテストのコードベースであり、夜未アガリの楽曲「シャッターチャンス」を視覚化します。このアプリケーションは、ユーザーがビートに合わせてキネティック・タイポグラフィをキャプチャするインタラクティブな3Dカメラレンズをシミュレートしており、モバイルデバイスでのWebXR拡張現実（AR）を完全にサポートしています。
 
@@ -74,8 +71,6 @@ For a full list of contributions, libraries, fonts, and creative commons assets 
    ```bash
    npm run dev
    ```
-3. デプロイ:
-   - このプロジェクトには、`main`ブランチにプッシュした際にGitHub Pagesに自動的にビルドしてデプロイするためのGitHub Actionsワークフロー（`.github/workflows/deploy.yml`）が含まれています。
 
 ## クレジットと貢献
 このプロジェクトで使用されている貢献、ライブラリ、フォント、およびクリエイティブ・コモンズの資産の完全なリストについては、[CREDITS.md](./CREDITS.md)ファイルを参照してください。
