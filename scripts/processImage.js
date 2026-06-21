@@ -50,7 +50,7 @@ async function main() {
 
     console.log(`Found ${edges.length} edge pixels.`);
 
-    const targetPoints = 15000;
+    const targetPoints = 50000;
     const sampledEdges = [];
     
     if (edges.length > 0) {
@@ -74,7 +74,7 @@ async function main() {
     ${pointsCode.join(',\n    ')}
   ];
 
-  while (points.length < 15000) {
+  while (points.length < 50000) {
     const source = points[Math.floor(Math.random() * points.length)];
     if (!source) break;
     points.push({

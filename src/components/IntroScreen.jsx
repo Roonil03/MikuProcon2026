@@ -82,9 +82,9 @@ const MikuParticles = React.forwardRef((props, ref) => {
     const goldR = 230 / 255, goldG = 199 / 255, goldB = 137 / 255;
     const blueR = 143 / 255, blueG = 199 / 255, blueB = 234 / 255;
     for (let i = 0; i < count; i++) {
-      c[i * 3] = blueR;
-      c[i * 3 + 1] = blueG;
-      c[i * 3 + 2] = blueB;
+      c[i * 3] = 200 / 255;
+      c[i * 3 + 1] = 200 / 255;
+      c[i * 3 + 2] = 200 / 255;
     }
     return c;
   }, [mikuCoords]);
@@ -137,7 +137,7 @@ const MikuParticles = React.forwardRef((props, ref) => {
           transparent
           opacity={0.8}
           depthWrite={false}
-          blending={THREE.AdditiveBlending}
+          blending={THREE.NormalBlending}
         />
       </points>
     </group>
@@ -218,6 +218,9 @@ export const IntroScreen = () => {
     const tl = gsap.timeline({
       onUpdate: () => {
         posAttr.needsUpdate = true;
+        if (geometry.getAttribute('color')) {
+           geometry.getAttribute('color').needsUpdate = true;
+        }
       },
       onComplete: () => {
         useStore.getState().setAppStage('loading_track');
@@ -244,6 +247,10 @@ export const IntroScreen = () => {
       });
     }
 
+    const colorAttr = geometry.getAttribute('color');
+    const colorArray = colorAttr ? colorAttr.array : null;
+    const blueR = 143 / 255, blueG = 199 / 255, blueB = 234 / 255;
+
     for (let i = 0; i < count; i++) {
       const idx = i * 3;
       tl.to(currentArray, {
@@ -253,6 +260,16 @@ export const IntroScreen = () => {
         duration: 4,
         ease: 'power3.inOut',
       }, 0);
+
+      if (colorArray) {
+        tl.to(colorArray, {
+          [idx]: blueR,
+          [idx + 1]: blueG,
+          [idx + 2]: blueB,
+          duration: 4,
+          ease: 'power3.inOut',
+        }, 0);
+      }
     }
   };
 
@@ -550,8 +567,8 @@ export const IntroScreen = () => {
               padding: '16px 60px',
               fontSize: language === 'ja' ? '1.2rem' : '1.5rem',
               fontWeight: 400,
-              background: 'transparent',
-              color: WARM_GOLD,
+              background: WARM_GOLD,
+              color: '#0a0a0a',
               border: `1.5px solid ${WARM_GOLD}`,
               cursor: 'pointer',
               letterSpacing: '6px',
@@ -559,17 +576,17 @@ export const IntroScreen = () => {
               transition: 'all 0.35s ease',
               position: 'relative',
               overflow: 'hidden',
-              boxShadow: '0 0 40px rgba(230,199,137,0.1), inset 0 0 40px rgba(230,199,137,0.03)',
+              boxShadow: '0 0 60px rgba(230,199,137,0.3)',
             }}
             onMouseOver={(e) => {
-              e.target.style.background = WARM_GOLD;
-              e.target.style.color = '#0a0a0a';
-              e.target.style.boxShadow = '0 0 60px rgba(230,199,137,0.3)';
-            }}
-            onMouseOut={(e) => {
               e.target.style.background = 'transparent';
               e.target.style.color = WARM_GOLD;
               e.target.style.boxShadow = '0 0 40px rgba(230,199,137,0.1), inset 0 0 40px rgba(230,199,137,0.03)';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.background = WARM_GOLD;
+              e.target.style.color = '#0a0a0a';
+              e.target.style.boxShadow = '0 0 60px rgba(230,199,137,0.3)';
             }}
           >
             {t.start}
