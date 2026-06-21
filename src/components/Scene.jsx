@@ -9,6 +9,16 @@ import gsap from 'gsap';
 import { useStore } from '../store/useStore';
 import { ASSETS } from '../constants/assets';
 
+// Asynchronously load the WebAssembly module
+import initWasm from '../../build/release.wasm?init';
+let wasmMemory = null;
+let wasmProcessCapture = null;
+
+initWasm().then(instance => {
+  wasmMemory = instance.exports.memory;
+  wasmProcessCapture = instance.exports.processCapture;
+}).catch(console.error);
+
 const SoundscapeMaterial = shaderMaterial(
   {
     uTime: 0,
@@ -314,38 +324,77 @@ const performCapture = (camera, viewport) => {
   let minDiff = Infinity;
   const timeWindow = 300 / shutterSpeed;
 
-  if (isMobile) {
-    lyricsData.forEach(lyric => {
-      const diff = Math.abs(lyric.startTime - currentPosition);
-      if (diff < minDiff && diff < timeWindow) {
-        minDiff = diff;
-        closestLyric = lyric;
+  const ndcX = cursorPosition.x * 2 - 1;
+  const ndcY = -(cursorPosition.y * 2 - 1);
+
+  // Use WebAssembly if available and memory is sufficient
+  if (wasmProcessCapture && wasmMemory && lyricsData.length * 16 + 64 <= wasmMemory.buffer.byteLength) {
+    const memFloat32 = new Float32Array(wasmMemory.buffer);
+    
+    if (!isMobile) {
+      camera.updateMatrixWorld();
+      const projMatrix = camera.projectionMatrix.clone();
+      projMatrix.multiply(camera.matrixWorldInverse);
+      projMatrix.toArray(memFloat32, 0); // write 16 floats
+    }
+
+    for (let i = 0; i < lyricsData.length; i++) {
+      const baseIdx = 16 + (i * 4);
+      memFloat32[baseIdx] = lyricsData[i].id;
+      memFloat32[baseIdx + 1] = lyricsData[i].startTime;
+      memFloat32[baseIdx + 2] = lyricsData[i].x;
+      memFloat32[baseIdx + 3] = lyricsData[i].y;
+    }
+
+    const closestLyricId = wasmProcessCapture(
+      0, // matrixPtr
+      16 * 4, // lyricsPtr
+      lyricsData.length,
+      currentPosition,
+      shutterSpeed,
+      ndcX,
+      ndcY,
+      isMobile ? 1 : 0
+    );
+
+    if (closestLyricId !== -1) {
+      closestLyric = lyricsData.find(l => l.id === closestLyricId);
+      if (closestLyric) {
+        minDiff = Math.abs(closestLyric.startTime - currentPosition);
       }
-    });
+    }
   } else {
-    const ndcX = cursorPosition.x * 2 - 1;
-    const ndcY = -(cursorPosition.y * 2 - 1);
+    // JavaScript Fallback
+    if (isMobile) {
+      lyricsData.forEach(lyric => {
+        const diff = Math.abs(lyric.startTime - currentPosition);
+        if (diff < minDiff && diff < timeWindow) {
+          minDiff = diff;
+          closestLyric = lyric;
+        }
+      });
+    } else {
+      lyricsData.forEach(lyric => {
+        const timeDiff = Math.abs(lyric.startTime - currentPosition);
+        if (timeDiff > timeWindow) return;
 
-    lyricsData.forEach(lyric => {
-      const timeDiff = Math.abs(lyric.startTime - currentPosition);
-      if (timeDiff > timeWindow) return;
+        const visibleWindow = 3000 / shutterSpeed;
+        const timeUntilSung = lyric.startTime - currentPosition;
+        const zPos = (timeUntilSung / visibleWindow) * -100;
 
-      const visibleWindow = 3000 / shutterSpeed;
-      const timeUntilSung = lyric.startTime - currentPosition;
-      const zPos = (timeUntilSung / visibleWindow) * -100;
+        const worldPos = new THREE.Vector3(lyric.x, lyric.y, zPos);
+        worldPos.project(camera);
 
-      const worldPos = new THREE.Vector3(lyric.x, lyric.y, zPos);
-      worldPos.project(camera);
+        const dx = worldPos.x - ndcX;
+        const dy = worldPos.y - ndcY;
+        const screenDist = Math.sqrt(dx * dx + dy * dy);
 
-      const dx = worldPos.x - ndcX;
-      const dy = worldPos.y - ndcY;
-      const screenDist = Math.sqrt(dx * dx + dy * dy);
-
-      if (screenDist < 0.25 && timeDiff < minDiff) {
-        minDiff = timeDiff;
-        closestLyric = lyric;
-      }
-    });
+        if (screenDist < 0.25 && timeDiff < minDiff) {
+          minDiff = timeDiff;
+          closestLyric = lyric;
+        }
+      });
+    }
   }
 
   if (closestLyric) {
