@@ -39,15 +39,15 @@ export const initializeTextAlive = () => {
         c = c.next;
       }
       useStore.getState().setLyricsData(lyrics);
-      
-      const currentStatus = useStore.getState().appStatus;
-      if (currentStatus === 'loading') {
-        useStore.getState().setAppStatus('ready');
+
+      const currentStage = useStore.getState().appStage;
+      if (currentStage === 'loading_track') {
+        useStore.getState().setAppStage('ready');
       }
     },
     onTimeUpdate: (position) => {
       useStore.getState().setCurrentPosition(position);
-      
+
       const b = player.findBeat(position);
       if (b && (!lastBeat || b.startTime !== lastBeat.startTime)) {
         lastBeat = b;
@@ -58,7 +58,6 @@ export const initializeTextAlive = () => {
       useStore.getState().setAppStatus('playing');
     },
     onTimerPause: () => {
-      // Do not overwrite isPaused state here
     },
     onTimerStop: () => {
       useStore.getState().setAppStatus('results');

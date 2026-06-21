@@ -4,6 +4,7 @@ const MAX_GALLERY_DISPLAY = 12;
 
 export const useStore = create((set, get) => ({
   appStatus: 'intro',
+  appStage: 'intro',
   score: 0,
   currentPhrase: null,
   currentBeat: null,
@@ -22,6 +23,7 @@ export const useStore = create((set, get) => ({
   language: 'en',
 
   setAppStatus: (status) => set({ appStatus: status }),
+  setAppStage: (stage) => set({ appStage: stage }),
   setLanguage: (lang) => set({ language: lang }),
   incrementScore: (amount) => set((state) => ({ score: state.score + amount })),
   setCurrentPhrase: (phrase) => set({ currentPhrase: phrase }),
