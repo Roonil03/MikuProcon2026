@@ -13,6 +13,7 @@ const SoundscapeMaterial = shaderMaterial(
   {
     uTime: 0,
     uIntensity: 0,
+    uArMode: 0,
   },
   `
     uniform float uTime;
@@ -99,21 +100,28 @@ const SoundscapeMaterial = shaderMaterial(
   `
     uniform float uTime;
     uniform float uIntensity;
+    uniform float uArMode;
     varying vec2 vUv;
     varying float vNoise;
 
     void main() {
       vec3 colorCoolBlue = vec3(0.56, 0.78, 0.92);
       vec3 colorWarmGold = vec3(0.90, 0.78, 0.54);
+      vec3 baseColor = colorCoolBlue * 0.15;
 
       float pulse = max(0.0, vNoise) * uIntensity;
-      vec3 finalColor = mix(colorCoolBlue, colorWarmGold, pulse);
+      vec3 finalColor = mix(baseColor, colorWarmGold, pulse);
 
       float gridX = smoothstep(0.95, 1.0, fract(vUv.x * 20.0));
       float gridY = smoothstep(0.95, 1.0, fract(vUv.y * 20.0));
       float gridLine = max(gridX, gridY);
+      
+      finalColor += gridLine * colorCoolBlue * 0.5 * max(0.2, uIntensity);
 
-      float alpha = max(pulse * 0.6, gridLine * 0.15);
+      float alpha = max(pulse * 0.6, gridLine * 0.3);
+      if (uArMode < 0.5) {
+        alpha = 1.0;
+      }
       
       gl_FragColor = vec4(finalColor, min(1.0, alpha));
     }
@@ -134,6 +142,7 @@ const SoundscapeCorridor = () => {
       storeState.decayBeat(delta * 2.5);
     }
     materialRef.current.uIntensity = storeState.beatPulse;
+    materialRef.current.uArMode = storeState.arMode ? 1.0 : 0.0;
   });
 
   return (
