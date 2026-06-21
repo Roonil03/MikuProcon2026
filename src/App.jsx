@@ -12,16 +12,13 @@ function App() {
   const isPaused = useStore(state => state.isPaused);
 
   useEffect(() => {
-    if (appStatus === 'intro') return;
-
     const existingPlayer = useStore.getState().player;
     if (existingPlayer) return;
-
     initializeTextAlive();
-  }, [appStatus]);
+  }, []);
 
   return (
-    <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden', backgroundColor: '#000', cursor: 'none' }}>
+    <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg, rgba(230,199,137,0.15) 0%, rgba(143,199,234,0.15) 100%)', backgroundColor: '#0a0a0f', cursor: 'none' }}>
       {appStatus === 'intro' && <IntroScreen />}
       {appStatus !== 'intro' && (
         <>

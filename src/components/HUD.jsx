@@ -3,10 +3,18 @@ import { useStore, MAX_GALLERY_DISPLAY } from '../store/useStore';
 import { ASSETS } from '../constants/assets';
 import { xrStore } from './Scene';
 
+const WARM_GOLD = 'rgba(230, 199, 137, 1)';
+const COOL_BLUE = 'rgba(143, 199, 234, 1)';
+const WARM_GOLD_HALF = 'rgba(230, 199, 137, 0.5)';
+
 export const HUD = () => {
-  const { appStatus, score, capturedLyrics, isPaused, arMode } = useStore();
+  const { appStatus, score, capturedLyrics, isPaused, arMode, isMobile, language } = useStore();
   const crosshairRef = useRef(null);
   const [cursorPos, setCursorPos] = useState({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+
+  const bodyFont = language === 'ja'
+    ? '"Shizuru", system-ui'
+    : '"Festive", cursive';
 
   useEffect(() => {
     const handleMove = (e) => {
@@ -62,39 +70,43 @@ export const HUD = () => {
       flexDirection: 'column',
       justifyContent: 'space-between',
       color: 'white',
-      fontFamily: '"M PLUS 1p", sans-serif',
+      fontFamily: bodyFont,
     }}>
       <div style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2 style={{ margin: 0, textShadow: '0 2px 8px rgba(0,0,0,0.6)', fontSize: '1.1rem', fontWeight: 500, letterSpacing: '3px', fontFamily: '"Orbitron", sans-serif' }}>
-          SCORE: <span style={{ color: '#39FFDC', fontWeight: 600 }}>{score}</span>
+          SCORE: <span style={{ color: WARM_GOLD, fontWeight: 600 }}>{score}</span>
         </h2>
         {appStatus === 'playing' && (
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button
-              onClick={() => {
-                const state = useStore.getState();
-                state.toggleARMode();
-                if (!state.arMode) {
-                  xrStore.enterAR();
-                }
-              }}
-              style={{
-                background: 'rgba(57,255,220,0.1)',
-                border: '1px solid #39FFDC',
-                color: '#39FFDC',
-                padding: '6px 12px',
-                fontFamily: '"Orbitron", sans-serif',
-                fontSize: '0.7rem',
-                cursor: 'pointer',
-                letterSpacing: '2px',
-                pointerEvents: 'auto',
-              }}
-            >
-              {arMode ? 'DISABLE AR' : 'ENABLE AR VIEWFINDER'}
-            </button>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            {/* AR Button only shown on mobile devices */}
+            {isMobile && (
+              <button
+                onClick={() => {
+                  const state = useStore.getState();
+                  state.toggleARMode();
+                  if (!state.arMode) {
+                    xrStore.enterAR();
+                  }
+                }}
+                style={{
+                  background: 'rgba(230,199,137,0.1)',
+                  border: `1px solid ${WARM_GOLD}`,
+                  color: WARM_GOLD,
+                  padding: '6px 12px',
+                  fontFamily: '"Orbitron", sans-serif',
+                  fontSize: '0.7rem',
+                  cursor: 'pointer',
+                  letterSpacing: '2px',
+                  pointerEvents: 'auto',
+                }}
+              >
+                {arMode ? 'DISABLE AR' : 'AR VIEWFINDER'}
+              </button>
+            )}
             <div style={{
-              fontSize: '0.7rem', letterSpacing: '2px', color: '#556',
+              fontSize: '0.7rem', letterSpacing: '2px', color: '#887766',
               textTransform: 'uppercase', pointerEvents: 'auto', cursor: 'pointer',
+              fontFamily: '"Orbitron", sans-serif',
             }}
               onClick={() => useStore.getState().togglePause()}
             >
@@ -118,28 +130,28 @@ export const HUD = () => {
       >
         <div style={{
           width: '100%', height: '100%',
-          border: '1.5px solid rgba(57,255,220,0.5)',
+          border: `1.5px solid ${WARM_GOLD_HALF}`,
           borderRadius: '50%',
           position: 'relative',
-          boxShadow: '0 0 20px rgba(57,255,220,0.1), inset 0 0 20px rgba(57,255,220,0.05)',
+          boxShadow: '0 0 20px rgba(230,199,137,0.1), inset 0 0 20px rgba(230,199,137,0.05)',
         }}>
-          <div style={{ position: 'absolute', top: '50%', left: '30%', right: '30%', height: '1px', background: 'rgba(57,255,220,0.6)', transform: 'translateY(-0.5px)' }} />
-          <div style={{ position: 'absolute', left: '50%', top: '30%', bottom: '30%', width: '1px', background: 'rgba(57,255,220,0.6)', transform: 'translateX(-0.5px)' }} />
+          <div style={{ position: 'absolute', top: '50%', left: '30%', right: '30%', height: '1px', background: 'rgba(230,199,137,0.6)', transform: 'translateY(-0.5px)' }} />
+          <div style={{ position: 'absolute', left: '50%', top: '30%', bottom: '30%', width: '1px', background: 'rgba(230,199,137,0.6)', transform: 'translateX(-0.5px)' }} />
           <div style={{
             position: 'absolute', top: '-4px', left: '50%', width: '1px', height: '8px',
-            background: 'rgba(57,255,220,0.4)', transform: 'translateX(-0.5px)',
+            background: 'rgba(230,199,137,0.4)', transform: 'translateX(-0.5px)',
           }} />
           <div style={{
             position: 'absolute', bottom: '-4px', left: '50%', width: '1px', height: '8px',
-            background: 'rgba(57,255,220,0.4)', transform: 'translateX(-0.5px)',
+            background: 'rgba(230,199,137,0.4)', transform: 'translateX(-0.5px)',
           }} />
           <div style={{
             position: 'absolute', left: '-4px', top: '50%', height: '1px', width: '8px',
-            background: 'rgba(57,255,220,0.4)', transform: 'translateY(-0.5px)',
+            background: 'rgba(230,199,137,0.4)', transform: 'translateY(-0.5px)',
           }} />
           <div style={{
             position: 'absolute', right: '-4px', top: '50%', height: '1px', width: '8px',
-            background: 'rgba(57,255,220,0.4)', transform: 'translateY(-0.5px)',
+            background: 'rgba(230,199,137,0.4)', transform: 'translateY(-0.5px)',
           }} />
         </div>
       </div>
@@ -157,16 +169,17 @@ export const HUD = () => {
               padding: '14px 36px',
               fontSize: '1rem',
               backgroundColor: 'transparent',
-              color: appStatus === 'ready' ? '#39FFDC' : '#556',
-              border: `1px solid ${appStatus === 'ready' ? '#39FFDC' : '#333'}`,
+              color: appStatus === 'ready' ? WARM_GOLD : '#556',
+              border: `1px solid ${appStatus === 'ready' ? WARM_GOLD : '#333'}`,
               cursor: appStatus === 'ready' ? 'pointer' : 'not-allowed',
               backdropFilter: 'blur(4px)',
               transition: 'all 0.3s ease',
               letterSpacing: '4px',
               textTransform: 'uppercase',
+              fontFamily: '"Orbitron", sans-serif',
             }}
-            onMouseOver={(e) => { if (appStatus === 'ready') { e.target.style.background = '#39FFDC'; e.target.style.color = '#0a0a0a'; } }}
-            onMouseOut={(e) => { e.target.style.background = 'transparent'; e.target.style.color = appStatus === 'ready' ? '#39FFDC' : '#556'; }}
+            onMouseOver={(e) => { if (appStatus === 'ready') { e.target.style.background = WARM_GOLD; e.target.style.color = '#0a0a0a'; } }}
+            onMouseOut={(e) => { e.target.style.background = 'transparent'; e.target.style.color = appStatus === 'ready' ? WARM_GOLD : '#556'; }}
           >
             {appStatus === 'loading' ? 'Loading Track...' : 'Start'}
           </button>
@@ -178,14 +191,15 @@ export const HUD = () => {
         display: 'flex',
         gap: '8px',
         overflowX: 'hidden',
-        background: 'linear-gradient(transparent, rgba(0,0,0,0.85))',
+        background: 'linear-gradient(transparent, rgba(10,10,15,0.85))',
         alignItems: 'center',
       }}>
         {overflowCount > 0 && (
           <div style={{
             minWidth: '40px', height: '36px',
             display: 'flex', justifyContent: 'center', alignItems: 'center',
-            fontSize: '0.7rem', color: '#39FFDC', letterSpacing: '1px',
+            fontSize: '0.7rem', color: WARM_GOLD, letterSpacing: '1px',
+            fontFamily: '"Orbitron", sans-serif',
           }}>
             +{overflowCount}
           </div>
@@ -193,22 +207,22 @@ export const HUD = () => {
         {displayedCaptures.map(lyric => (
           <div key={lyric.id} style={{
             minWidth: '52px', height: '36px',
-            border: '1px solid rgba(57,255,220,0.3)',
+            border: '1px solid rgba(230,199,137,0.3)',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             fontSize: '0.75rem',
-            color: '#39FFDC',
+            color: WARM_GOLD,
             fontWeight: 500,
-            backgroundColor: 'rgba(57,255,220,0.05)',
+            backgroundColor: 'rgba(230,199,137,0.05)',
             transition: 'all 0.3s ease',
           }}>
             {lyric.text}
           </div>
         ))}
         {capturedLyrics.length === 0 && (
-          <div style={{ color: 'rgba(255,255,255,0.25)', fontStyle: 'italic', fontSize: '0.8rem', letterSpacing: '1px' }}>
-            Capture lyrics to fill the gallery...
+          <div style={{ color: 'rgba(255,255,255,0.25)', fontStyle: 'italic', fontSize: '0.8rem', letterSpacing: '1px', fontFamily: bodyFont }}>
+            {language === 'ja' ? '\u6B4C\u8A5E\u3092\u30AD\u30E3\u30D7\u30C1\u30E3\u3057\u3066\u30AE\u30E3\u30E9\u30EA\u30FC\u3092\u57CB\u3081\u3066\u304F\u3060\u3055\u3044...' : 'Capture lyrics to fill the gallery...'}
           </div>
         )}
       </div>

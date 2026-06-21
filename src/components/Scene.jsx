@@ -103,8 +103,8 @@ const SoundscapeMaterial = shaderMaterial(
     varying float vNoise;
 
     void main() {
-      vec3 colorBase = vec3(0.01, 0.02, 0.05);
-      vec3 colorPulse = vec3(0.22, 1.0, 0.86);
+      vec3 colorBase = vec3(0.02, 0.02, 0.03);
+      vec3 colorPulse = vec3(0.90, 0.78, 0.54);
 
       float pulse = max(0.0, vNoise) * uIntensity;
       vec3 finalColor = mix(colorBase, colorPulse, pulse * 0.5);
@@ -235,7 +235,7 @@ const LyricMesh = ({ lyric }) => {
       anchorX="center"
       anchorY="middle"
       visible={false}
-      font="https://fonts.gstatic.com/s/notosansjp/v52/-F6jfjtqLzI2JPCgQBnw7HFyzSD-AsregP8VFBEj75vY0rw-oME.woff"
+      font="/MikuProcon2026/fonts/NotoSansJP-Bold.otf"
     >
       {lyric.text}
     </Text>
@@ -370,7 +370,7 @@ export const Scene = () => {
   const arMode = useStore(state => state.arMode);
 
   return (
-    <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1, backgroundColor: arMode ? 'transparent' : '#050505' }}>
+    <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1, backgroundColor: arMode ? 'transparent' : '#0a0a0f' }}>
       <Canvas>
         <XR store={xrStore}>
           <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={75} />

@@ -19,8 +19,10 @@ export const useStore = create((set, get) => ({
   arMode: false,
   beatPulse: 0,
   sweepOffset: { value: 0 },
+  language: 'en',
 
   setAppStatus: (status) => set({ appStatus: status }),
+  setLanguage: (lang) => set({ language: lang }),
   incrementScore: (amount) => set((state) => ({ score: state.score + amount })),
   setCurrentPhrase: (phrase) => set({ currentPhrase: phrase }),
   setCurrentBeat: (beat) => set({ currentBeat: beat }),

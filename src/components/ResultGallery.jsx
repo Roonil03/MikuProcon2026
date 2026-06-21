@@ -2,6 +2,9 @@ import React, { useRef, useCallback } from 'react';
 import html2canvas from 'html2canvas';
 import { useStore } from '../store/useStore';
 
+const WARM_GOLD = 'rgba(230, 199, 137, 1)';
+const COOL_BLUE = 'rgba(143, 199, 234, 1)';
+
 const PolaroidCard = ({ lyric, index }) => {
   return (
     <div style={{
@@ -16,7 +19,7 @@ const PolaroidCard = ({ lyric, index }) => {
       transition: 'transform 0.3s ease',
     }}>
       <div style={{
-        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+        background: 'linear-gradient(135deg, rgba(230,199,137,0.15) 0%, #1a1a2e 50%, rgba(143,199,234,0.15) 100%)',
         padding: '20px',
         minHeight: '80px',
         display: 'flex',
@@ -28,14 +31,14 @@ const PolaroidCard = ({ lyric, index }) => {
         <div style={{
           position: 'absolute',
           top: 0, left: 0, right: 0, bottom: 0,
-          background: 'radial-gradient(circle at center, rgba(57,255,220,0.15) 0%, transparent 70%)',
+          background: 'radial-gradient(circle at center, rgba(230,199,137,0.15) 0%, transparent 70%)',
         }} />
         <span style={{
           fontSize: '1.8rem',
           fontWeight: 700,
           fontFamily: '"Zen Kaku Gothic New", sans-serif',
-          color: '#39FFDC',
-          textShadow: '0 0 12px rgba(57,255,220,0.6)',
+          color: WARM_GOLD,
+          textShadow: '0 0 12px rgba(230,199,137,0.6)',
           letterSpacing: '2px',
           position: 'relative',
           zIndex: 1,
@@ -58,13 +61,17 @@ const PolaroidCard = ({ lyric, index }) => {
 
 export const ResultGallery = () => {
   const galleryRef = useRef(null);
-  const { capturedLyrics, score } = useStore();
+  const { capturedLyrics, score, language } = useStore();
+
+  const bodyFont = language === 'ja'
+    ? '"Shizuru", system-ui'
+    : '"Festive", cursive';
 
   const handleDownload = useCallback(async () => {
     if (!galleryRef.current) return;
     try {
       const canvas = await html2canvas(galleryRef.current, {
-        backgroundColor: '#0a0a0a',
+        backgroundColor: '#0a0a0f',
         scale: 2,
       });
       const link = document.createElement('a');
@@ -82,12 +89,14 @@ export const ResultGallery = () => {
         position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
         zIndex: 100,
         display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
-        background: 'rgba(0,0,0,0.95)',
+        background: 'rgba(10,10,15,0.95)',
         color: '#aaa',
-        fontFamily: '"M PLUS 1p", sans-serif',
+        fontFamily: bodyFont,
       }}>
-        <h2 style={{ marginBottom: '10px', color: '#fff', fontFamily: '"Orbitron", sans-serif' }}>No Captures</h2>
-        <p>No lyrics were captured during this session.</p>
+        <h2 style={{ marginBottom: '10px', color: '#fff', fontFamily: '"Festive", cursive', fontSize: '2rem' }}>
+          {language === 'ja' ? '\u30AD\u30E3\u30D7\u30C1\u30E3\u306A\u3057' : 'No Captures'}
+        </h2>
+        <p>{language === 'ja' ? '\u3053\u306E\u30BB\u30C3\u30B7\u30E7\u30F3\u3067\u306F\u6B4C\u8A5E\u304C\u30AD\u30E3\u30D7\u30C1\u30E3\u3055\u308C\u307E\u305B\u3093\u3067\u3057\u305F\u3002' : 'No lyrics were captured during this session.'}</p>
       </div>
     );
   }
@@ -97,9 +106,9 @@ export const ResultGallery = () => {
       position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
       zIndex: 100,
       display: 'flex', flexDirection: 'column',
-      background: 'rgba(5,5,5,0.97)',
+      background: 'rgba(10,10,15,0.97)',
       color: 'white',
-      fontFamily: '"M PLUS 1p", sans-serif',
+      fontFamily: bodyFont,
       overflow: 'auto',
     }}>
       <div style={{
@@ -107,18 +116,19 @@ export const ResultGallery = () => {
         padding: '30px 20px 10px',
       }}>
         <h1 style={{
-          fontSize: '2rem',
-          fontWeight: 600,
-          fontFamily: '"Orbitron", sans-serif',
-          letterSpacing: '6px',
-          textTransform: 'uppercase',
+          fontSize: '2.5rem',
+          fontWeight: 400,
+          fontFamily: '"Festive", cursive',
+          letterSpacing: '4px',
           marginBottom: '8px',
-          color: '#39FFDC',
+          color: WARM_GOLD,
         }}>
           Roonil03
         </h1>
-        <p style={{ color: '#888', fontSize: '0.9rem', fontFamily: '"M PLUS 1p", sans-serif' }}>
-          Final Score: {score} | Captured: {capturedLyrics.length} frames
+        <p style={{ color: '#888', fontSize: language === 'ja' ? '0.85rem' : '1rem', fontFamily: bodyFont }}>
+          {language === 'ja'
+            ? `\u6700\u7D42\u30B9\u30B3\u30A2: ${score} | \u30AD\u30E3\u30D7\u30C1\u30E3: ${capturedLyrics.length}\u30D5\u30EC\u30FC\u30E0`
+            : `Final Score: ${score} | Captured: ${capturedLyrics.length} frames`}
         </p>
       </div>
 
@@ -132,7 +142,7 @@ export const ResultGallery = () => {
           alignItems: 'flex-start',
           padding: '20px',
           gap: '6px',
-          backgroundColor: '#0a0a0a',
+          backgroundColor: '#0a0a0f',
         }}
       >
         {capturedLyrics.map((lyric, i) => (
@@ -148,27 +158,26 @@ export const ResultGallery = () => {
           onClick={handleDownload}
           style={{
             padding: '14px 36px',
-            fontSize: '0.85rem',
-            fontFamily: '"Orbitron", sans-serif',
-            fontWeight: 500,
+            fontSize: language === 'ja' ? '0.85rem' : '1.1rem',
+            fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Festive", cursive',
+            fontWeight: 400,
             background: 'transparent',
-            color: '#39FFDC',
-            border: '1px solid #39FFDC',
+            color: WARM_GOLD,
+            border: `1px solid ${WARM_GOLD}`,
             cursor: 'pointer',
             letterSpacing: '3px',
-            textTransform: 'uppercase',
             transition: 'all 0.3s ease',
           }}
           onMouseEnter={(e) => {
-            e.target.style.background = '#39FFDC';
-            e.target.style.color = '#0a0a0a';
+            e.target.style.background = WARM_GOLD;
+            e.target.style.color = '#0a0a0f';
           }}
           onMouseLeave={(e) => {
             e.target.style.background = 'transparent';
-            e.target.style.color = '#39FFDC';
+            e.target.style.color = WARM_GOLD;
           }}
         >
-          Download Archive
+          {language === 'ja' ? '\u30A2\u30FC\u30AB\u30A4\u30D6\u3092\u30C0\u30A6\u30F3\u30ED\u30FC\u30C9' : 'Download Archive'}
         </button>
       </div>
     </div>
