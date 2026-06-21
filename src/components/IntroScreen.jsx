@@ -392,6 +392,10 @@ export const IntroScreen = () => {
           opacity: appStage === 'forming' ? 0 : 1,
           transition: 'opacity 1.0s ease-out',
           pointerEvents: appStage === 'forming' ? 'none' : 'auto',
+          background: 'rgba(0, 0, 0, 0.25)',
+          borderRadius: '16px',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
         }}>
           <div style={{
             opacity: titleVisible ? 1 : 0,
