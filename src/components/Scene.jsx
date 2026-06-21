@@ -135,9 +135,9 @@ const SoundscapeCorridor = () => {
   });
 
   return (
-    <mesh position={[0, 0, -50]}>
-      <cylinderGeometry args={[20, 20, 200, 32, 32, true]} />
-      <soundscapeMaterial ref={materialRef} side={THREE.BackSide} />
+    <mesh position={[0, 0, -20]} rotation={[Math.PI / 2, 0, 0]}>
+      <cylinderGeometry args={[10, 10, 100, 32, 1, true]} />
+      <soundscapeMaterial ref={materialRef} side={THREE.BackSide} transparent />
     </mesh>
   );
 };
@@ -187,8 +187,8 @@ const CameraController = () => {
     if (!isMobile) {
       const nx = cursorPosition.x * 2 - 1;
       const ny = cursorPosition.y * 2 - 1;
-      targetRotation.current.x = -ny * 0.12;
-      targetRotation.current.y = nx * 0.12;
+      targetRotation.current.x = -ny * 0.4;
+      targetRotation.current.y = nx * 0.4;
     }
 
     camera.rotation.x = THREE.MathUtils.lerp(camera.rotation.x, targetRotation.current.x, 0.06);

@@ -33,13 +33,17 @@ export const initializeTextAlive = () => {
           startTime: c.startTime,
           endTime: c.endTime,
           duration: c.duration,
-          x: (Math.random() - 0.5) * 8,
-          y: (Math.random() - 0.5) * 6,
+          x: (Math.random() - 0.5) * 20,
+          y: (Math.random() - 0.5) * 16,
         });
         c = c.next;
       }
       useStore.getState().setLyricsData(lyrics);
-      useStore.getState().setAppStatus('ready');
+      
+      const currentStatus = useStore.getState().appStatus;
+      if (currentStatus === 'loading') {
+        useStore.getState().setAppStatus('ready');
+      }
     },
     onTimeUpdate: (position) => {
       useStore.getState().setCurrentPosition(position);

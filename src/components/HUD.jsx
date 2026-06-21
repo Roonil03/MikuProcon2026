@@ -125,7 +125,6 @@ export const HUD = () => {
           width: '100px',
           height: '100px',
           pointerEvents: 'none',
-          transition: 'left 0.08s ease-out, top 0.08s ease-out',
         }}
       >
         <div style={{
