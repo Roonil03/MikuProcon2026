@@ -260,7 +260,7 @@ const DynamicPostProcessing = () => {
   const shutterSpeed = useStore(state => state.shutterSpeed);
 
   const dofFocal = useMemo(() => Math.max(0.005, 0.05 / shutterSpeed), [shutterSpeed]);
-  const dofBokeh = useMemo(() => Math.max(0.5, 6 / shutterSpeed), [shutterSpeed]);
+  const dofBokeh = useMemo(() => Math.max(0.15, 1.8 / shutterSpeed), [shutterSpeed]);
   const chromaOffset = useMemo(() => {
     const val = Math.min(0.01, 0.005 / shutterSpeed);
     return [val, val];

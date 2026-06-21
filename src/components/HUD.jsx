@@ -10,7 +10,6 @@ const WARM_GOLD_HALF = 'rgba(230, 199, 137, 0.5)';
 export const HUD = () => {
   const { appStatus, score, capturedLyrics, isPaused, arMode, isMobile, language } = useStore();
   const crosshairRef = useRef(null);
-  const [cursorPos, setCursorPos] = useState({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
 
   const bodyFont = language === 'ja'
     ? '"Shizuru", system-ui'
@@ -18,9 +17,14 @@ export const HUD = () => {
 
   useEffect(() => {
     const handleMove = (e) => {
-      const x = e.clientX ?? e.touches?.[0]?.clientX ?? cursorPos.x;
-      const y = e.clientY ?? e.touches?.[0]?.clientY ?? cursorPos.y;
-      setCursorPos({ x, y });
+      const x = e.clientX ?? e.touches?.[0]?.clientX ?? (window.innerWidth / 2);
+      const y = e.clientY ?? e.touches?.[0]?.clientY ?? (window.innerHeight / 2);
+      
+      if (crosshairRef.current) {
+        crosshairRef.current.style.left = `${x - 50}px`;
+        crosshairRef.current.style.top = `${y - 50}px`;
+      }
+
       useStore.getState().setCursorPosition(x / window.innerWidth, y / window.innerHeight);
     };
 
@@ -120,8 +124,8 @@ export const HUD = () => {
         ref={crosshairRef}
         style={{
           position: 'absolute',
-          left: cursorPos.x - 50,
-          top: cursorPos.y - 50,
+          left: 'calc(50vw - 50px)',
+          top: 'calc(50vh - 50px)',
           width: '100px',
           height: '100px',
           pointerEvents: 'none',
