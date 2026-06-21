@@ -14,7 +14,7 @@ export const PauseMenu = () => {
 
   const bodyFont = language === 'ja'
     ? '"Shizuru", system-ui'
-    : '"Londrina Shadow", sans-serif';
+    : '"Kranky", sans-serif';
 
   const playHover = () => {
     const audio = new Audio(ASSETS.SFX_HOVER);
@@ -70,7 +70,7 @@ export const PauseMenu = () => {
         </div>
 
         <h2 style={{
-          fontFamily: '"Londrina Shadow", sans-serif',
+          fontFamily: '"Kranky", sans-serif',
           fontSize: '2rem',
           fontWeight: 400,
           letterSpacing: '6px',
@@ -92,11 +92,11 @@ export const PauseMenu = () => {
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 20px' }}>
             <span>{language === 'ja' ? '\u30B9\u30B3\u30A2' : 'Score'}</span>
-            <span style={{ color: WARM_GOLD, fontFamily: '"Orbitron", sans-serif', fontSize: '0.75rem' }}>{score}</span>
+            <span style={{ color: WARM_GOLD, fontFamily: '"Press Start 2P", sans-serif', fontSize: '0.75rem' }}>{score}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 20px 0' }}>
             <span>{language === 'ja' ? '\u30AD\u30E3\u30D7\u30C1\u30E3' : 'Captured'}</span>
-            <span style={{ color: WARM_GOLD, fontFamily: '"Orbitron", sans-serif', fontSize: '0.75rem' }}>{capturedLyrics.length}</span>
+            <span style={{ color: WARM_GOLD, fontFamily: '"Press Start 2P", sans-serif', fontSize: '0.75rem' }}>{capturedLyrics.length}</span>
           </div>
         </div>
 
@@ -108,7 +108,7 @@ export const PauseMenu = () => {
             width: '200px',
             padding: '13px 0',
             margin: '0 auto',
-            fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Londrina Shadow", sans-serif',
+            fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Kranky", sans-serif',
             fontSize: language === 'ja' ? '0.9rem' : '1.2rem',
             fontWeight: 400,
             background: 'transparent',
@@ -134,7 +134,7 @@ export const PauseMenu = () => {
 
         <div style={{
           marginTop: '16px',
-          fontFamily: '"Orbitron", sans-serif',
+          fontFamily: '"Press Start 2P", sans-serif',
           fontSize: '0.6rem',
           color: '#555',
           letterSpacing: '2px',

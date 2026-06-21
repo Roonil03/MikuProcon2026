@@ -48,7 +48,7 @@ export const IntroScreen = () => {
 
   const bodyFont = language === 'ja'
     ? '"Shizuru", system-ui'
-    : '"Londrina Shadow", sans-serif';
+    : '"Kranky", sans-serif';
 
   useEffect(() => {
     const t1 = setTimeout(() => setTitleVisible(true), 300);
@@ -133,7 +133,7 @@ export const IntroScreen = () => {
           border: `1px solid ${WARM_GOLD_HALF}`,
           color: WARM_GOLD,
           padding: '6px 16px',
-          fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Londrina Shadow", sans-serif',
+          fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Kranky", sans-serif',
           fontSize: language === 'ja' ? '0.85rem' : '1rem',
           cursor: 'pointer',
           letterSpacing: '2px',
@@ -158,7 +158,7 @@ export const IntroScreen = () => {
           position: 'absolute',
           top: '20px',
           left: '20px',
-          fontFamily: '"Orbitron", sans-serif',
+          fontFamily: '"Press Start 2P", sans-serif',
           fontSize: '0.6rem',
           letterSpacing: '2px',
           color: useStore.getState().lyricsData?.length > 0 ? 'rgba(143,199,234,0.6)' : 'rgba(230,199,137,0.4)',
@@ -196,7 +196,7 @@ export const IntroScreen = () => {
           </div>
 
           <h1 style={{
-            fontFamily: '"Londrina Shadow", sans-serif',
+            fontFamily: '"Kranky", sans-serif',
             fontSize: '3.2rem',
             fontWeight: 400,
             letterSpacing: '6px',
@@ -221,7 +221,7 @@ export const IntroScreen = () => {
           }}>
             <div style={{ height: '1px', width: '40px', background: `linear-gradient(to right, transparent, ${WARM_GOLD_DIM})` }} />
             <span style={{
-              fontFamily: '"Londrina Shadow", sans-serif',
+              fontFamily: '"Kranky", sans-serif',
               fontSize: '1rem',
               color: WARM_GOLD_HALF,
               letterSpacing: '4px',
@@ -249,7 +249,7 @@ export const IntroScreen = () => {
             fontFamily: bodyFont,
           }}>
             <div style={{
-              fontFamily: '"Orbitron", sans-serif',
+              fontFamily: '"Press Start 2P", sans-serif',
               color: WARM_GOLD,
               fontWeight: 600,
               marginBottom: '14px',
@@ -291,7 +291,7 @@ export const IntroScreen = () => {
             onClick={handleBegin}
             onMouseEnter={playHover}
             style={{
-              fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Londrina Shadow", sans-serif',
+              fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Kranky", sans-serif',
               padding: '14px 52px',
               fontSize: language === 'ja' ? '1rem' : '1.3rem',
               fontWeight: 400,
@@ -321,7 +321,7 @@ export const IntroScreen = () => {
 
           <div style={{
             marginTop: '20px',
-            fontFamily: '"Orbitron", sans-serif',
+            fontFamily: '"Press Start 2P", sans-serif',
             fontSize: '0.65rem',
             color: '#555',
             letterSpacing: '2px',
@@ -338,7 +338,7 @@ export const IntroScreen = () => {
         left: 0,
         width: '100%',
         textAlign: 'center',
-        fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Londrina Shadow", sans-serif',
+        fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Kranky", sans-serif',
         fontSize: language === 'ja' ? '0.65rem' : '0.8rem',
         color: '#444',
         padding: '0 20px',

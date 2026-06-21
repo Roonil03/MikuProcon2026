@@ -48,7 +48,7 @@ const PolaroidCard = ({ lyric, index }) => {
       </div>
       <div style={{
         marginTop: '8px',
-        fontFamily: '"Orbitron", monospace',
+        fontFamily: '"Press Start 2P", monospace',
         fontSize: '0.7rem',
         color: '#888',
         textAlign: 'left',
@@ -65,7 +65,7 @@ export const ResultGallery = () => {
 
   const bodyFont = language === 'ja'
     ? '"Shizuru", system-ui'
-    : '"Londrina Shadow", sans-serif';
+    : '"Kranky", sans-serif';
 
   const handleDownload = useCallback(async () => {
     if (!galleryRef.current) return;
@@ -93,7 +93,7 @@ export const ResultGallery = () => {
         color: '#aaa',
         fontFamily: bodyFont,
       }}>
-        <h2 style={{ marginBottom: '10px', color: '#fff', fontFamily: '"Londrina Shadow", sans-serif', fontSize: '2rem' }}>
+        <h2 style={{ marginBottom: '10px', color: '#fff', fontFamily: '"Kranky", sans-serif', fontSize: '2rem' }}>
           {language === 'ja' ? '\u30AD\u30E3\u30D7\u30C1\u30E3\u306A\u3057' : 'No Captures'}
         </h2>
         <p>{language === 'ja' ? '\u3053\u306E\u30BB\u30C3\u30B7\u30E7\u30F3\u3067\u306F\u6B4C\u8A5E\u304C\u30AD\u30E3\u30D7\u30C1\u30E3\u3055\u308C\u307E\u305B\u3093\u3067\u3057\u305F\u3002' : 'No lyrics were captured during this session.'}</p>
@@ -118,7 +118,7 @@ export const ResultGallery = () => {
         <h1 style={{
           fontSize: '2.5rem',
           fontWeight: 400,
-          fontFamily: '"Londrina Shadow", sans-serif',
+          fontFamily: '"Kranky", sans-serif',
           letterSpacing: '4px',
           marginBottom: '8px',
           color: WARM_GOLD,
@@ -159,7 +159,7 @@ export const ResultGallery = () => {
           style={{
             padding: '14px 36px',
             fontSize: language === 'ja' ? '0.85rem' : '1.1rem',
-            fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Londrina Shadow", sans-serif',
+            fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Kranky", sans-serif',
             fontWeight: 400,
             background: 'transparent',
             color: WARM_GOLD,

@@ -13,7 +13,7 @@ export const HUD = () => {
 
   const bodyFont = language === 'ja'
     ? '"Shizuru", system-ui'
-    : '"Londrina Shadow", sans-serif';
+    : '"Kranky", sans-serif';
 
   useEffect(() => {
     const handleMove = (e) => {
@@ -77,7 +77,7 @@ export const HUD = () => {
       fontFamily: bodyFont,
     }}>
       <div style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ margin: 0, textShadow: '0 2px 8px rgba(0,0,0,0.6)', fontSize: '1.1rem', fontWeight: 500, letterSpacing: '3px', fontFamily: '"Orbitron", sans-serif' }}>
+        <h2 style={{ margin: 0, textShadow: '0 2px 8px rgba(0,0,0,0.6)', fontSize: '1.1rem', fontWeight: 500, letterSpacing: '3px', fontFamily: '"Press Start 2P", sans-serif' }}>
           SCORE: <span style={{ color: WARM_GOLD, fontWeight: 600 }}>{score}</span>
         </h2>
         {appStatus === 'playing' && (
@@ -90,7 +90,7 @@ export const HUD = () => {
                   background: 'transparent',
                   border: `1px solid ${WARM_GOLD_HALF}`,
                   color: WARM_GOLD,
-                  fontFamily: '"Orbitron", sans-serif',
+                  fontFamily: '"Press Start 2P", sans-serif',
                   fontSize: '0.75rem',
                   letterSpacing: '2px',
                   pointerEvents: 'auto',
@@ -119,7 +119,7 @@ export const HUD = () => {
             <div style={{
               fontSize: '0.7rem', letterSpacing: '2px', color: '#887766',
               textTransform: 'uppercase', pointerEvents: 'auto', cursor: 'pointer',
-              fontFamily: '"Orbitron", sans-serif',
+              fontFamily: '"Press Start 2P", sans-serif',
             }}
               onClick={() => useStore.getState().togglePause()}
             >
@@ -188,7 +188,7 @@ export const HUD = () => {
               transition: 'all 0.3s ease',
               letterSpacing: '4px',
               textTransform: 'uppercase',
-              fontFamily: '"Orbitron", sans-serif',
+              fontFamily: '"Press Start 2P", sans-serif',
             }}
             onMouseOver={(e) => { if (appStatus === 'ready') { e.target.style.background = WARM_GOLD; e.target.style.color = '#0a0a0a'; } }}
             onMouseOut={(e) => { e.target.style.background = 'transparent'; e.target.style.color = appStatus === 'ready' ? WARM_GOLD : '#556'; }}
@@ -211,7 +211,7 @@ export const HUD = () => {
             minWidth: '40px', height: '36px',
             display: 'flex', justifyContent: 'center', alignItems: 'center',
             fontSize: '0.7rem', color: WARM_GOLD, letterSpacing: '1px',
-            fontFamily: '"Orbitron", sans-serif',
+            fontFamily: '"Press Start 2P", sans-serif',
           }}>
             +{overflowCount}
           </div>

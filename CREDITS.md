@@ -18,9 +18,9 @@ This project was made possible thanks to the incredible tools, APIs, and creativ
 ## Fonts (SIL Open Font License)
 
 All fonts used in this project are graciously provided by Google Fonts under the Open Font License:
-- **Londrina Shadow**: Used for English UI headers and branding.
+- **Kranky**: Used for English UI headers and branding.
 - **Shizuru (しずる)**: Used for Japanese UI headers and branding.
-- **Orbitron**: Used for the futuristic HUD elements.
+- **Press Start 2P**: Used for the futuristic HUD elements.
 - **M PLUS 1p** & **Zen Kaku Gothic New**: Used for readable body text and immersive 3D lyrics.
 
 ## Creative Commons (Audio)
@@ -51,9 +51,9 @@ All fonts used in this project are graciously provided by Google Fonts under the
 ## フォント (SIL Open Font License)
 
 このプロジェクトで使用されているすべてのフォントは、Open Font Licenseの下でGoogle Fontsから提供されています：
-- **Londrina Shadow**: 英語のUIヘッダーとブランディングに使用。
+- **Kranky**: 英語のUIヘッダーとブランディングに使用。
 - **Shizuru (しずる)**: 日本語のUIヘッダーとブランディングに使用。
-- **Orbitron**: 未来的なHUD要素に使用。
+- **Press Start 2P**: 未来的なHUD要素に使用。
 - **M PLUS 1p** & **Zen Kaku Gothic New**: 読みやすい本文テキストと没入感のある3D歌詞に使用。
 
 ## クレジット表記 (オーディオ)
