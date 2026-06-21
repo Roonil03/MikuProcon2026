@@ -255,17 +255,25 @@ const LyricMesh = ({ lyric }) => {
 
 const LyricsCorridor = () => {
   const lyricsData = useStore(state => state.lyricsData);
+  const activeChunkIndex = useStore(state => Math.floor(state.currentPosition / 15000));
+
+  const activeLyrics = useMemo(() => {
+    // Sliding window: keep lyrics for current 15s chunk and the next 15s chunk mounted
+    const startTime = (activeChunkIndex - 1) * 15000;
+    const endTime = (activeChunkIndex + 2) * 15000; // 45 seconds total window
+    return lyricsData.filter(l => l.startTime >= startTime && l.startTime <= endTime);
+  }, [lyricsData, activeChunkIndex]);
 
   return (
     <group>
-      {lyricsData.map((lyric) => (
+      {activeLyrics.map((lyric) => (
         <LyricMesh key={lyric.id} lyric={lyric} />
       ))}
     </group>
   );
 };
 
-const DynamicPostProcessing = () => {
+const DynamicPostProcessing = ({ isMobileDevice }) => {
   const shutterSpeed = useStore(state => state.shutterSpeed);
 
   const dofFocal = useMemo(() => Math.max(0.005, 0.05 / shutterSpeed), [shutterSpeed]);
@@ -277,12 +285,14 @@ const DynamicPostProcessing = () => {
 
   return (
     <EffectComposer>
-      <DepthOfField
-        focusDistance={0}
-        focalLength={dofFocal}
-        bokehScale={dofBokeh}
-        height={480}
-      />
+      {!isMobileDevice && (
+        <DepthOfField
+          focusDistance={0}
+          focalLength={dofFocal}
+          bokehScale={dofBokeh}
+          height={480}
+        />
+      )}
       <Bloom
         luminanceThreshold={0.4}
         luminanceSmoothing={0.9}
@@ -377,12 +387,14 @@ const HitDetectionLayer = () => {
 
 export const xrStore = createXRStore();
 
+const isMobileDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+
 export const Scene = () => {
   const arMode = useStore(state => state.arMode);
 
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1, backgroundColor: arMode ? 'transparent' : '#0a0a0f' }}>
-      <Canvas>
+      <Canvas dpr={isMobileDevice ? [1, 1.5] : [1, 2]}>
         <XR store={xrStore}>
           <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={75} />
           <CameraController />
@@ -393,7 +405,7 @@ export const Scene = () => {
           <HitDetectionLayer />
           
           {!arMode && <SoundscapeCorridor />}
-          {!arMode && <DynamicPostProcessing />}
+          {!arMode && <DynamicPostProcessing isMobileDevice={isMobileDevice} />}
         </XR>
       </Canvas>
     </div>
