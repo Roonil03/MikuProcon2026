@@ -161,6 +161,7 @@ export const IntroScreen = () => {
   const [titleVisible, setTitleVisible] = useState(false);
   const [contentVisible, setContentVisible] = useState(false);
   const [btnVisible, setBtnVisible] = useState(false);
+  const [countdown, setCountdown] = useState(null);
   const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   const language = useStore(state => state.language);
   const appStage = useStore(state => state.appStage);
@@ -277,11 +278,21 @@ export const IntroScreen = () => {
     const audio = new Audio(ASSETS.SFX_CLICK);
     audio.play().catch(() => {});
 
-    const player = useStore.getState().player;
-    if (player) {
-      player.requestPlay();
-      useStore.getState().setAppStatus('playing');
-    }
+    setCountdown(3);
+    let count = 3;
+    const interval = setInterval(() => {
+      count -= 1;
+      if (count > 0) {
+        setCountdown(count);
+      } else {
+        clearInterval(interval);
+        const player = useStore.getState().player;
+        if (player) {
+          player.requestPlay();
+          useStore.getState().setAppStatus('playing');
+        }
+      }
+    }, 1000);
   };
 
   const playHover = () => {
@@ -563,38 +574,50 @@ export const IntroScreen = () => {
           zIndex: 10,
           animation: 'fadeInUp 0.8s ease-out forwards',
         }}>
-          <button
-            onClick={handleStart}
-            onMouseEnter={playHover}
-            style={{
-              fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Kranky", sans-serif',
-              padding: '16px 60px',
-              fontSize: language === 'ja' ? '1.2rem' : '1.5rem',
-              fontWeight: 400,
-              background: WARM_GOLD,
-              color: '#0a0a0a',
-              border: `1.5px solid ${WARM_GOLD}`,
-              cursor: 'pointer',
-              letterSpacing: '6px',
-              textTransform: language === 'ja' ? 'none' : 'uppercase',
-              transition: 'all 0.35s ease',
-              position: 'relative',
-              overflow: 'hidden',
-              boxShadow: '0 0 60px rgba(230,199,137,0.3)',
-            }}
-            onMouseOver={(e) => {
-              e.target.style.background = 'transparent';
-              e.target.style.color = WARM_GOLD;
-              e.target.style.boxShadow = '0 0 40px rgba(230,199,137,0.1), inset 0 0 40px rgba(230,199,137,0.03)';
-            }}
-            onMouseOut={(e) => {
-              e.target.style.background = WARM_GOLD;
-              e.target.style.color = '#0a0a0a';
-              e.target.style.boxShadow = '0 0 60px rgba(230,199,137,0.3)';
-            }}
-          >
-            {t.start}
-          </button>
+          {countdown !== null ? (
+            <div style={{
+              fontFamily: '"Press Start 2P", system-ui',
+              fontSize: '4rem',
+              color: WARM_GOLD,
+              textShadow: `0 0 20px ${WARM_GOLD_HALF}`,
+              animation: 'pulse 1s infinite',
+            }}>
+              {countdown}
+            </div>
+          ) : (
+            <button
+              onClick={handleStart}
+              onMouseEnter={playHover}
+              style={{
+                fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Kranky", sans-serif',
+                padding: '16px 60px',
+                fontSize: language === 'ja' ? '1.2rem' : '1.5rem',
+                fontWeight: 400,
+                background: WARM_GOLD,
+                color: '#0a0a0a',
+                border: `1.5px solid ${WARM_GOLD}`,
+                cursor: 'pointer',
+                letterSpacing: '6px',
+                textTransform: language === 'ja' ? 'none' : 'uppercase',
+                transition: 'all 0.35s ease',
+                position: 'relative',
+                overflow: 'hidden',
+                boxShadow: '0 0 60px rgba(230,199,137,0.3)',
+              }}
+              onMouseOver={(e) => {
+                e.target.style.background = 'transparent';
+                e.target.style.color = WARM_GOLD;
+                e.target.style.boxShadow = '0 0 40px rgba(230,199,137,0.1), inset 0 0 40px rgba(230,199,137,0.03)';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.background = WARM_GOLD;
+                e.target.style.color = '#0a0a0a';
+                e.target.style.boxShadow = '0 0 60px rgba(230,199,137,0.3)';
+              }}
+            >
+              {t.start}
+            </button>
+          )}
         </div>
       )}
 
