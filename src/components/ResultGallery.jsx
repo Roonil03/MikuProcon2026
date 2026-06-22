@@ -86,7 +86,7 @@ export const ResultGallery = () => {
   const handleRestart = useCallback(() => {
     const msg = language === 'ja' 
       ? '曲をリスタートしてもよろしいですか？（進捗は失われます）'
-      : 'Are you sure you want to restart the song? All progress will be lost.';
+      : 'Would you like to play the song again?';
     if (window.confirm(msg)) {
       window.location.reload();
     }
