@@ -83,6 +83,15 @@ export const ResultGallery = () => {
     }
   }, []);
 
+  const handleRestart = useCallback(() => {
+    const msg = language === 'ja' 
+      ? '曲をリスタートしてもよろしいですか？（進捗は失われます）'
+      : 'Are you sure you want to restart the song? All progress will be lost.';
+    if (window.confirm(msg)) {
+      window.location.reload();
+    }
+  }, [language]);
+
   if (capturedLyrics.length === 0) {
     return (
       <div style={{
@@ -153,6 +162,10 @@ export const ResultGallery = () => {
       <div style={{
         textAlign: 'center',
         padding: '20px',
+        display: 'flex',
+        justifyContent: 'center',
+        gap: '20px',
+        flexWrap: 'wrap',
       }}>
         <button
           onClick={handleDownload}
@@ -177,7 +190,33 @@ export const ResultGallery = () => {
             e.target.style.color = WARM_GOLD;
           }}
         >
-          {language === 'ja' ? '\u30A2\u30FC\u30AB\u30A4\u30D6\u3092\u30C0\u30A6\u30F3\u30ED\u30FC\u30C9' : 'Download Archive'}
+          {language === 'ja' ? 'アーカイブをダウンロード' : 'Download Archive'}
+        </button>
+
+        <button
+          onClick={handleRestart}
+          style={{
+            padding: '14px 36px',
+            fontSize: language === 'ja' ? '0.85rem' : '1.1rem',
+            fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Kranky", sans-serif',
+            fontWeight: 400,
+            background: 'transparent',
+            color: COOL_BLUE,
+            border: `1px solid ${COOL_BLUE}`,
+            cursor: 'pointer',
+            letterSpacing: '3px',
+            transition: 'all 0.3s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.background = COOL_BLUE;
+            e.target.style.color = '#0a0a0f';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = 'transparent';
+            e.target.style.color = COOL_BLUE;
+          }}
+        >
+          {language === 'ja' ? '曲をリスタート' : 'Restart Song'}
         </button>
       </div>
     </div>
