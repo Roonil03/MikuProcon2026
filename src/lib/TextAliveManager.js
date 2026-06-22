@@ -16,6 +16,7 @@ export const initializeTextAlive = () => {
   });
 
   let lastBeat = null;
+  let lastPosition = 0;
   player.addListener({
     onAppReady: (app) => {
       if (app.managed) return;
@@ -53,6 +54,24 @@ export const initializeTextAlive = () => {
         lastBeat = b;
         useStore.getState().triggerBeat();
       }
+
+      const state = useStore.getState();
+      if (state.appStatus === 'playing') {
+        const lyrics = state.lyricsData;
+        if (lyrics.length > 0) {
+          const lastLyric = lyrics[lyrics.length - 1];
+          // Stop 4 seconds after the last lyric
+          if (position > lastLyric.endTime + 4000) {
+            player.requestStop();
+          }
+        }
+        
+        // Loop detection: if position jumps backwards significantly
+        if (lastPosition > 0 && position < lastPosition - 5000) {
+          player.requestStop();
+        }
+      }
+      lastPosition = position;
     },
     onTimerPlay: () => {
       useStore.getState().setAppStatus('playing');
