@@ -60,6 +60,27 @@ export const useStore = create((set, get) => ({
     }
   },
 
+  reset: () => set({
+    appStatus: 'intro',
+    appStage: 'intro',
+    score: 0,
+    currentPhrase: null,
+    currentBeat: null,
+    activeLyrics: [],
+    lyricsData: [],
+    capturedLyrics: [],
+    player: null,
+    currentPosition: 0,
+    shutterSpeed: 1.0,
+    isMobile: false,
+    isPaused: false,
+    cursorPosition: { x: 0.5, y: 0.5 },
+    arMode: false,
+    beatPulse: 0,
+    sweepOffset: { value: 0 },
+    language: 'en',
+  }),
+
   getDisplayedCaptures: () => {
     const state = get();
     return state.capturedLyrics.slice(-MAX_GALLERY_DISPLAY);

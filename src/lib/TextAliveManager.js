@@ -63,12 +63,14 @@ export const initializeTextAlive = () => {
           // Stop 4 seconds after the last lyric
           if (position > lastLyric.endTime + 4000) {
             player.requestStop();
+            useStore.getState().setAppStatus('results');
           }
         }
         
         // Loop detection: if position jumps backwards significantly
         if (lastPosition > 0 && position < lastPosition - 5000) {
           player.requestStop();
+          useStore.getState().setAppStatus('results');
         }
       }
       lastPosition = position;
