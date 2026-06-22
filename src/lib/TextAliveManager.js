@@ -41,6 +41,18 @@ export const initializeTextAlive = () => {
       }
       useStore.getState().setLyricsData(lyrics);
 
+      // Calculate instrumental gaps (gaps between phrases > 6 seconds)
+      const gaps = [];
+      let phrase = player.video.firstPhrase;
+      while (phrase && phrase.next) {
+        const gapDuration = phrase.next.startTime - phrase.endTime;
+        if (gapDuration > 6000) {
+          gaps.push({ startTime: phrase.endTime, endTime: phrase.next.startTime });
+        }
+        phrase = phrase.next;
+      }
+      useStore.getState().setInstrumentalGaps(gaps);
+
       const currentStage = useStore.getState().appStage;
       if (currentStage === 'loading_track') {
         useStore.getState().setAppStage('ready');

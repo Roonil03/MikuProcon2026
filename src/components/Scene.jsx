@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { useStore } from '../store/useStore';
 import { ASSETS } from '../constants/assets';
+import characterData from '../lib/characterData.json';
 
 // Asynchronously load the WebAssembly module
 import initWasm from '../../build/release.wasm?init';
@@ -263,6 +264,124 @@ const LyricMesh = ({ lyric }) => {
   );
 };
 
+const CharacterParticles = () => {
+  const pointsRef = useRef();
+  const currentPosition = useStore(state => state.currentPosition);
+  const gaps = useStore(state => state.instrumentalGaps);
+  const currentGap = useRef(null);
+
+  const [positions, colors] = useMemo(() => {
+    const pos = new Float32Array(1500 * 3);
+    const col = new Float32Array(1500 * 3);
+    for(let i=0; i<1500; i++) {
+      pos[i*3] = (Math.random() - 0.5) * 100;
+      pos[i*3+1] = (Math.random() - 0.5) * 100;
+      pos[i*3+2] = (Math.random() - 0.5) * 100 - 50;
+      col[i*3] = 1; col[i*3+1] = 1; col[i*3+2] = 1;
+    }
+    return [pos, col];
+  }, []);
+
+  useFrame(() => {
+    if (!pointsRef.current) return;
+    const geo = pointsRef.current.geometry;
+    const posAttr = geo.attributes.position;
+    const colAttr = geo.attributes.color;
+
+    const activeGap = gaps.find(g => currentPosition >= g.startTime && currentPosition <= g.endTime);
+    
+    if (activeGap) {
+      if (currentGap.current !== activeGap) {
+        currentGap.current = activeGap;
+        // pick a random character shape based on the gap start time (pseudo-random but consistent)
+        const shapeIndex = Math.floor((activeGap.startTime / 1000) % characterData.length);
+        const charShape = characterData[shapeIndex] || characterData[0];
+        
+        const targetPos = new Float32Array(1500 * 3);
+        const targetCol = new Float32Array(1500 * 3);
+        
+        for(let i=0; i<1500; i++) {
+          const pt = charShape.points[i] || charShape.points[0];
+          targetPos[i*3] = pt.x;
+          targetPos[i*3+1] = pt.y;
+          targetPos[i*3+2] = -30; // 30 units away
+          targetCol[i*3] = pt.color[0];
+          targetCol[i*3+1] = pt.color[1];
+          targetCol[i*3+2] = pt.color[2];
+        }
+
+        gsap.to(posAttr.array, {
+          endArray: targetPos,
+          duration: 2,
+          ease: 'power2.out',
+          onUpdate: () => { posAttr.needsUpdate = true; }
+        });
+        gsap.to(colAttr.array, {
+          endArray: targetCol,
+          duration: 2,
+          ease: 'power2.out',
+          onUpdate: () => { colAttr.needsUpdate = true; }
+        });
+      }
+    } else {
+      if (currentGap.current !== null) {
+        currentGap.current = null;
+        // scatter back to random
+        const targetPos = new Float32Array(1500 * 3);
+        const targetCol = new Float32Array(1500 * 3);
+        for(let i=0; i<1500; i++) {
+          targetPos[i*3] = (Math.random() - 0.5) * 100;
+          targetPos[i*3+1] = (Math.random() - 0.5) * 100;
+          targetPos[i*3+2] = (Math.random() - 0.5) * 100 - 50;
+          targetCol[i*3] = 0.5; // dim out
+          targetCol[i*3+1] = 0.5;
+          targetCol[i*3+2] = 0.5;
+        }
+        gsap.to(posAttr.array, {
+          endArray: targetPos,
+          duration: 3,
+          ease: 'power2.inOut',
+          onUpdate: () => { posAttr.needsUpdate = true; }
+        });
+        gsap.to(colAttr.array, {
+          endArray: targetCol,
+          duration: 3,
+          ease: 'power2.inOut',
+          onUpdate: () => { colAttr.needsUpdate = true; }
+        });
+      }
+    }
+  });
+
+  return (
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={1500}
+          array={positions}
+          itemSize={3}
+        />
+        <bufferAttribute
+          attach="attributes-color"
+          count={1500}
+          array={colors}
+          itemSize={3}
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        vertexColors
+        size={0.15}
+        sizeAttenuation
+        transparent
+        opacity={0.7}
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+      />
+    </points>
+  );
+};
+
 const LyricsCorridor = () => {
   const lyricsData = useStore(state => state.lyricsData);
   const activeChunkIndex = useStore(state => Math.floor(state.currentPosition / 15000));
@@ -451,6 +570,7 @@ export const Scene = () => {
           <directionalLight position={[10, 10, 10]} intensity={1.5} />
 
           <LyricsCorridor />
+          <CharacterParticles />
           <HitDetectionLayer />
           
           {!arMode && <SoundscapeCorridor />}
