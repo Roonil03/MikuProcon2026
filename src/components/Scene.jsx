@@ -555,7 +555,7 @@ const HitDetectionLayer = () => {
 
 export const xrStore = createXRStore();
 
-const isMobileDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+const isMobileDevice = typeof navigator !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 export const Scene = () => {
   const arMode = useStore(state => state.arMode);

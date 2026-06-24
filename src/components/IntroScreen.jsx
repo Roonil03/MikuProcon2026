@@ -17,8 +17,8 @@ const TEXT_EN = {
   howToPlay: 'How To Play',
   mobileTilt: 'Tilt your device to aim the viewfinder. Lyrics will fly towards you as the song plays.',
   mobileTap: 'Tap the screen when a lyric aligns with the center of the crosshair. Timing precision determines your score.',
-  desktopMove: 'Move your cursor to aim the viewfinder. Lyrics will fly towards you as the song plays.',
-  desktopClick: 'Click when a lyric aligns with the crosshair center. Timing precision determines your score.',
+  desktopMove: 'Move your mouse or trackpad to aim the viewfinder at the incoming lyrics.',
+  desktopClick: 'Click the left mouse button when a lyric aligns perfectly with the crosshair. Your timing determines the score.',
   captured: 'Captured lyrics are archived as polaroid frames. Press Escape at any time to pause.',
   begin: 'Begin',
   start: 'Start',
@@ -35,8 +35,8 @@ const TEXT_JA = {
   howToPlay: '\u904A\u3073\u65B9',
   mobileTilt: '\u30C7\u30D0\u30A4\u30B9\u3092\u50BE\u3051\u3066\u30D5\u30A1\u30A4\u30F3\u30C0\u30FC\u3092\u5408\u308F\u305B\u3066\u304F\u3060\u3055\u3044\u3002\u66F2\u306E\u518D\u751F\u4E2D\u3001\u6B4C\u8A5E\u304C\u98DB\u3093\u3067\u304D\u307E\u3059\u3002',
   mobileTap: '\u6B4C\u8A5E\u304C\u30AF\u30ED\u30B9\u30D8\u30A2\u306E\u4E2D\u5FC3\u306B\u63C3\u3063\u305F\u3089\u753B\u9762\u3092\u30BF\u30C3\u30D7\u3057\u3066\u304F\u3060\u3055\u3044\u3002\u30BF\u30A4\u30DF\u30F3\u30B0\u306E\u7CBE\u5EA6\u304C\u30B9\u30B3\u30A2\u306B\u5F71\u97FF\u3057\u307E\u3059\u3002',
-  desktopMove: '\u30AB\u30FC\u30BD\u30EB\u3092\u52D5\u304B\u3057\u3066\u30D5\u30A1\u30A4\u30F3\u30C0\u30FC\u3092\u5408\u308F\u305B\u3066\u304F\u3060\u3055\u3044\u3002\u66F2\u306E\u518D\u751F\u4E2D\u3001\u6B4C\u8A5E\u304C\u98DB\u3093\u3067\u304D\u307E\u3059\u3002',
-  desktopClick: '\u6B4C\u8A5E\u304C\u30AF\u30ED\u30B9\u30D8\u30A2\u306E\u4E2D\u5FC3\u306B\u63C3\u3063\u305F\u3089\u30AF\u30EA\u30C3\u30AF\u3057\u3066\u304F\u3060\u3055\u3044\u3002\u30BF\u30A4\u30DF\u30F3\u30B0\u306E\u7CBE\u5EA6\u304C\u30B9\u30B3\u30A2\u306B\u5F71\u97FF\u3057\u307E\u3059\u3002',
+  desktopMove: 'マウスやトラックパッドを動かしてファインダーを歌詞に合わせてください。',
+  desktopClick: '歌詞がクロスヘアの中心に完全に揃ったら左クリックしてください。タイミングの精度がスコアに影響します。',
   captured: '\u30AD\u30E3\u30D7\u30C1\u30E3\u3057\u305F\u6B4C\u8A5E\u306F\u30DD\u30E9\u30ED\u30A4\u30C9\u30D5\u30EC\u30FC\u30E0\u3068\u3057\u3066\u30A2\u30FC\u30AB\u30A4\u30D6\u3055\u308C\u307E\u3059\u3002\u3044\u3064\u3067\u3082Esc\u30AD\u30FC\u3067\u4E00\u6642\u505C\u6B62\u3067\u304D\u307E\u3059\u3002',
   begin: '\u59CB\u3081\u308B',
   start: '\u30B9\u30BF\u30FC\u30C8',
@@ -162,7 +162,7 @@ export const IntroScreen = () => {
   const [contentVisible, setContentVisible] = useState(false);
   const [btnVisible, setBtnVisible] = useState(false);
   const [countdown, setCountdown] = useState(null);
-  const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   const language = useStore(state => state.language);
   const appStage = useStore(state => state.appStage);
   const t = language === 'ja' ? TEXT_JA : TEXT_EN;
