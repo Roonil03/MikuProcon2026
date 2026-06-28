@@ -2,6 +2,10 @@
 
 This project was made possible thanks to the incredible tools, APIs, and creative commons assets provided by the community. We would like to extend our deepest gratitude to the **Magical Mirai 2026 Programming Contest (Miku Procon)** for providing the platform, inspiration, and the TextAlive App API that powers this experience.
 
+## Creative Commons & License Notice
+
+All music, graphical images, textures, audio sound effects, and font assets utilized within this application are either released under **Creative Commons licenses** (CC BY / CC0 / SIL Open Font License) or explicitly provided for open contest visualization use via the Magical Mirai 2026 programming contest guidelines and the TextAlive App API.
+
 ## Special Thanks
 
 - **Magical Mirai 2026 / Miku Procon**: For hosting the programming contest and fostering a space for developers to blend code with Vocaloid culture.
@@ -39,6 +43,10 @@ All fonts used in this project are graciously provided by Google Fonts under the
 # クレジットと貢献
 
 このプロジェクトは、コミュニティによって提供された素晴らしいツール、API、クリエイティブ・コモンズの資産のおかげで実現しました。この体験を支えるプラットフォーム、インスピレーション、そしてTextAlive App APIを提供してくださった**マジカルミライ 2026 プログラミング・コンテスト（Miku Procon）**に深く感謝申し上げます。
+
+## クリエイティブ・コモンズとライセンス表記
+
+本アプリケーション内で使用されている楽曲、画像、グラフィックテクスチャ、効果音、およびフォント資産はすべて、**クリエイティブ・コモンズ・ライセンス**（CC BY / CC0 / SIL Open Font License）の下で提供されているか、マジカルミライ 2026 プログラミング・コンテストのガイドラインおよびTextAlive App APIを通じて公式に利用許諾された素材です。
 
 ## スペシャルサンクス
 
