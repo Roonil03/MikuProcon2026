@@ -1,4 +1,4 @@
-# Magical Mirai 2026 - Shutter Chance
+# [Magical Mirai 2026](https://magicalmirai.com/2026/procon/index_en.html) - [Shutter Chance](https://www.youtube.com/watch?v=ZVGbTFcfnn8)
 
 This is the codebase for the Magical Mirai 2026 Programming Contest, visualizing the song "Shutter Chance" by Yamiagari. The application simulates an interactive 3D camera lens where users capture kinetic typography synced to the beat. It dynamically adapts its gameplay controls based on your device: offering a precision mouse/cursor mode on laptop-like devices, and an immersive WebXR Augmented Reality (AR) gyroscope/tilt movement mode on phone-like devices.
 
