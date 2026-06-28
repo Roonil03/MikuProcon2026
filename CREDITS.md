@@ -23,9 +23,14 @@ All fonts used in this project are graciously provided by Google Fonts under the
 - **Press Start 2P**: Used for the futuristic HUD elements.
 - **M PLUS 1p** & **Zen Kaku Gothic New**: Used for readable body text and immersive 3D lyrics.
 
-## Creative Commons (Audio)
+## Graphical Assets & Textures
 
-- Standard UI sound effects (hover, click, camera shutter, error, success) are sourced from public domain (CC0) libraries.
+- **Wikimedia Commons**: Sourced creative commons textures including the background lens flare (`Mograph_lensflare.png`) and character logo placeholder (`Hatsune_miku_logo_v4x.png`).
+- **SubtlePatterns (Atle Mo)**: Sourced the polaroid frame texture (`polaroid.png`) used for captured lyric archives.
+
+## Audio & Sound Effects
+
+- **Remotion Media**: High-quality UI sound effects including the camera shutter (`shutter-modern.wav`) and UI hover sounds (`mouse-click.wav`).
 
 ---
 
@@ -56,6 +61,11 @@ All fonts used in this project are graciously provided by Google Fonts under the
 - **Press Start 2P**: 未来的なHUD要素に使用。
 - **M PLUS 1p** & **Zen Kaku Gothic New**: 読みやすい本文テキストと没入感のある3D歌詞に使用。
 
-## クレジット表記 (オーディオ)
+## グラフィック資産とテクスチャ
 
-- 標準的なUIサウンドエフェクト（ホバー、クリック、カメラのシャッター、エラー、成功）は、パブリックドメイン（CC0）ライブラリから取得しています。
+- **Wikimedia Commons**: 背景のレンズフレア（`Mograph_lensflare.png`）やキャラクターロゴのプレースホルダー（`Hatsune_miku_logo_v4x.png`）などのクリエイティブ・コモンズ・テクスチャを使用しています。
+- **SubtlePatterns (Atle Mo)**: キャプチャした歌詞のアーカイブに使用されるポラロイドフレームのテクスチャ（`polaroid.png`）を使用しています。
+
+## オーディオと効果音
+
+- **Remotion Media**: カメラのシャッター音（`shutter-modern.wav`）やUIホバー音（`mouse-click.wav`）などの高品質な効果音を使用しています。
