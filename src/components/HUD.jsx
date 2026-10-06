@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useStore, MAX_GALLERY_DISPLAY } from '../store/useStore';
 import { ASSETS } from '../constants/assets';
-import { xrStore } from './Scene';
+import { xrStore } from '../lib/xrStore';
 
 const WARM_GOLD = 'rgba(230, 199, 137, 1)';
 const WARM_GOLD_HALF = 'rgba(230, 199, 137, 0.5)';

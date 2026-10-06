@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import gsap from 'gsap';
@@ -49,54 +49,39 @@ const TEXT_JA = {
   forming: '\u5F62\u6210\u4E2D...',
 };
 
+const createMikuParticleData = () => {
+  const coordinates = generateMikuSilhouette();
+  const count = coordinates.length;
+  const randomPositions = new Float32Array(count * 3);
+  const targetPositions = new Float32Array(count * 3);
+  const colors = new Float32Array(count * 3);
+  const sizes = new Float32Array(count);
+
+  for (let i = 0; i < count; i++) {
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    const radius = 4 + Math.random() * 6;
+    randomPositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+    randomPositions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+    randomPositions[i * 3 + 2] = radius * Math.cos(phi);
+    targetPositions[i * 3] = coordinates[i].x;
+    targetPositions[i * 3 + 1] = coordinates[i].y;
+    targetPositions[i * 3 + 2] = coordinates[i].z;
+    colors[i * 3] = 200 / 255;
+    colors[i * 3 + 1] = 200 / 255;
+    colors[i * 3 + 2] = 200 / 255;
+    sizes[i] = 1.5 + Math.random() * 2;
+  }
+
+  return { randomPositions, targetPositions, colors, sizes };
+};
+
+const MIKU_PARTICLE_DATA = createMikuParticleData();
+
 const MikuParticles = React.forwardRef((props, ref) => {
   const pointsRef = useRef();
   const groupRef = useRef();
-
-  const mikuCoords = useMemo(() => generateMikuSilhouette(), []);
-
-  const { randomPositions, targetPositions } = useMemo(() => {
-    const count = mikuCoords.length;
-    const random = new Float32Array(count * 3);
-    const target = new Float32Array(count * 3);
-
-    for (let i = 0; i < count; i++) {
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
-      const radius = 4 + Math.random() * 6;
-      random[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-      random[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-      random[i * 3 + 2] = radius * Math.cos(phi);
-
-      target[i * 3] = mikuCoords[i].x;
-      target[i * 3 + 1] = mikuCoords[i].y;
-      target[i * 3 + 2] = mikuCoords[i].z;
-    }
-
-    return { randomPositions: random, targetPositions: target };
-  }, [mikuCoords]);
-
-  const colors = useMemo(() => {
-    const count = mikuCoords.length;
-    const c = new Float32Array(count * 3);
-    const goldR = 230 / 255, goldG = 199 / 255, goldB = 137 / 255;
-    const blueR = 143 / 255, blueG = 199 / 255, blueB = 234 / 255;
-    for (let i = 0; i < count; i++) {
-      c[i * 3] = 200 / 255;
-      c[i * 3 + 1] = 200 / 255;
-      c[i * 3 + 2] = 200 / 255;
-    }
-    return c;
-  }, [mikuCoords]);
-
-  const sizes = useMemo(() => {
-    const count = mikuCoords.length;
-    const s = new Float32Array(count);
-    for (let i = 0; i < count; i++) {
-      s[i] = 1.5 + Math.random() * 2.0;
-    }
-    return s;
-  }, [mikuCoords]);
+  const { randomPositions, targetPositions, colors, sizes } = MIKU_PARTICLE_DATA;
 
   React.useImperativeHandle(ref, () => ({
     getGeometry: () => pointsRef.current?.geometry,
@@ -104,7 +89,6 @@ const MikuParticles = React.forwardRef((props, ref) => {
     getGroup: () => groupRef.current,
     getRandomPositions: () => randomPositions,
     getTargetPositions: () => targetPositions,
-    getParticleCount: () => mikuCoords.length,
   }));
 
   useEffect(() => {
@@ -209,8 +193,6 @@ export const IntroScreen = () => {
     const geometry = particlesRef.current.getGeometry();
     const targetPositions = particlesRef.current.getTargetPositions();
     const group = particlesRef.current.getGroup();
-    const count = particlesRef.current.getParticleCount();
-
     if (!geometry || !targetPositions) return;
 
     const posAttr = geometry.getAttribute('position');
@@ -252,25 +234,24 @@ export const IntroScreen = () => {
     const colorArray = colorAttr ? colorAttr.array : null;
     const blueR = 143 / 255, blueG = 199 / 255, blueB = 234 / 255;
 
-    for (let i = 0; i < count; i++) {
-      const idx = i * 3;
-      tl.to(currentArray, {
-        [idx]: targetPositions[idx],
-        [idx + 1]: targetPositions[idx + 1],
-        [idx + 2]: targetPositions[idx + 2],
+    tl.to(currentArray, {
+      endArray: targetPositions,
+      duration: 4,
+      ease: 'power3.inOut',
+    }, 0);
+
+    if (colorArray) {
+      const targetColors = new Float32Array(colorArray.length);
+      for (let i = 0; i < targetColors.length; i += 3) {
+        targetColors[i] = blueR;
+        targetColors[i + 1] = blueG;
+        targetColors[i + 2] = blueB;
+      }
+      tl.to(colorArray, {
+        endArray: targetColors,
         duration: 4,
         ease: 'power3.inOut',
       }, 0);
-
-      if (colorArray) {
-        tl.to(colorArray, {
-          [idx]: blueR,
-          [idx + 1]: blueG,
-          [idx + 2]: blueB,
-          duration: 4,
-          ease: 'power3.inOut',
-        }, 0);
-      }
     }
   };
 

@@ -3,12 +3,13 @@ import { Canvas, useFrame, useThree, extend } from '@react-three/fiber';
 import { PerspectiveCamera, Text, shaderMaterial } from '@react-three/drei';
 import { EffectComposer, DepthOfField, ChromaticAberration, Bloom } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
-import { XR, createXRStore } from '@react-three/xr';
+import { XR } from '@react-three/xr';
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { useStore } from '../store/useStore';
 import { ASSETS } from '../constants/assets';
 import characterData from '../lib/characterData.json';
+import { xrStore } from '../lib/xrStore';
 
 // Asynchronously load the WebAssembly module
 import initWasm from '../../build/release.wasm?init';
@@ -179,7 +180,7 @@ const CameraController = () => {
           try {
             const permission = await DeviceOrientationEvent.requestPermission();
             if (permission === 'granted') hasGyroscope.current = true;
-          } catch (e) {
+          } catch {
             hasGyroscope.current = false;
           }
         } else {
@@ -203,6 +204,7 @@ const CameraController = () => {
     return undefined;
   }, []);
 
+  /* eslint-disable react-hooks/immutability -- Three.js cameras are updated imperatively inside R3F's frame loop. */
   useFrame(() => {
     const { isMobile, cursorPosition, sweepOffset } = useStore.getState();
 
@@ -216,6 +218,7 @@ const CameraController = () => {
     camera.rotation.x = THREE.MathUtils.lerp(camera.rotation.x, targetRotation.current.x, 0.06);
     camera.rotation.y = THREE.MathUtils.lerp(camera.rotation.y, targetRotation.current.y + sweepOffset.value, 0.06);
   });
+  /* eslint-enable react-hooks/immutability */
 
   return null;
 };
@@ -264,22 +267,27 @@ const LyricMesh = ({ lyric }) => {
   );
 };
 
+const CHARACTER_PARTICLE_COUNT = 1500;
+const createCharacterParticleData = () => {
+  const positions = new Float32Array(CHARACTER_PARTICLE_COUNT * 3);
+  const colors = new Float32Array(CHARACTER_PARTICLE_COUNT * 3);
+  for (let i = 0; i < CHARACTER_PARTICLE_COUNT; i++) {
+    positions[i * 3] = (Math.random() - 0.5) * 100;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * 100;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 100 - 50;
+    colors[i * 3] = 1;
+    colors[i * 3 + 1] = 1;
+    colors[i * 3 + 2] = 1;
+  }
+  return { positions, colors };
+};
+const CHARACTER_PARTICLE_DATA = createCharacterParticleData();
+
 const CharacterParticles = () => {
   const pointsRef = useRef();
   const gaps = useStore(state => state.instrumentalGaps);
   const currentGap = useRef(null);
-
-  const [positions, colors] = useMemo(() => {
-    const pos = new Float32Array(1500 * 3);
-    const col = new Float32Array(1500 * 3);
-    for(let i=0; i<1500; i++) {
-      pos[i*3] = (Math.random() - 0.5) * 100;
-      pos[i*3+1] = (Math.random() - 0.5) * 100;
-      pos[i*3+2] = (Math.random() - 0.5) * 100 - 50;
-      col[i*3] = 1; col[i*3+1] = 1; col[i*3+2] = 1;
-    }
-    return [pos, col];
-  }, []);
+  const { positions, colors } = CHARACTER_PARTICLE_DATA;
 
   useFrame(() => {
     if (!pointsRef.current) return;
@@ -358,13 +366,13 @@ const CharacterParticles = () => {
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
-          count={1500}
+          count={CHARACTER_PARTICLE_COUNT}
           array={positions}
           itemSize={3}
         />
         <bufferAttribute
           attach="attributes-color"
-          count={1500}
+          count={CHARACTER_PARTICLE_COUNT}
           array={colors}
           itemSize={3}
         />
@@ -566,8 +574,6 @@ const HitDetectionLayer = () => {
     </mesh>
   );
 };
-
-export const xrStore = createXRStore();
 
 const isTouchDevice = typeof window !== 'undefined'
   && (window.matchMedia?.('(pointer: coarse)').matches || navigator.maxTouchPoints > 0);

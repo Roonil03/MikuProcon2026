@@ -1,9 +1,7 @@
-import React from 'react';
 import { useStore } from '../store/useStore';
 import { ASSETS } from '../constants/assets';
 
 const WARM_GOLD = 'rgba(230, 199, 137, 1)';
-const WARM_GOLD_HALF = 'rgba(230, 199, 137, 0.5)';
 const WARM_GOLD_DIM = 'rgba(230, 199, 137, 0.4)';
 
 export const PauseMenu = () => {

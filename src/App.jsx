@@ -1,4 +1,3 @@
-import React, { useEffect } from 'react';
 import { Scene } from './components/Scene';
 import { HUD } from './components/HUD';
 import { ResultGallery } from './components/ResultGallery';
