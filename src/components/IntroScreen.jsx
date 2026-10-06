@@ -393,12 +393,13 @@ export const IntroScreen = () => {
         {appStage === 'ready' ? t.trackReady : (appStage === 'loading_track' ? t.loadingTrack : (appStage === 'forming' ? t.forming : 'PRELOADING...'))}
       </div>
 
+      <div className="intro-scroll-region">
+        <div className="intro-scroll-content">
       {showOverlay && (
-        <div style={{
+        <div className="intro-panel" style={{
           position: 'relative',
           zIndex: 1,
           textAlign: 'center',
-          maxWidth: '640px',
           padding: '40px 30px',
           opacity: appStage === 'forming' ? 0 : 1,
           transition: 'opacity 1.0s ease-out',
@@ -567,6 +568,19 @@ export const IntroScreen = () => {
         </div>
       )}
 
+          <div className="intro-disclaimer" style={{
+            textAlign: 'center',
+            fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Kranky", sans-serif',
+            fontSize: language === 'ja' ? '0.65rem' : '0.8rem',
+            color: '#555',
+            lineHeight: 1.5,
+            zIndex: 1,
+          }}>
+            {t.disclaimer}
+          </div>
+        </div>
+      </div>
+
       {showStartButton && (
         <div style={{
           position: 'absolute',
@@ -620,22 +634,6 @@ export const IntroScreen = () => {
           )}
         </div>
       )}
-
-      <div style={{
-        position: 'absolute',
-        bottom: '16px',
-        left: 0,
-        width: '100%',
-        textAlign: 'center',
-        fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Kranky", sans-serif',
-        fontSize: language === 'ja' ? '0.65rem' : '0.8rem',
-        color: '#444',
-        padding: '0 20px',
-        lineHeight: 1.5,
-        zIndex: 1,
-      }}>
-        {t.disclaimer}
-      </div>
 
       <style>{`
         @keyframes crosshair-glow {
