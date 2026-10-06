@@ -39,6 +39,7 @@ export const useStore = create((set, get) => ({
   setCursorPosition: (x, y) => set({ cursorPosition: { x, y } }),
   triggerBeat: () => set({ beatPulse: 1.0 }),
   decayBeat: (amount) => set((state) => ({ beatPulse: Math.max(0, state.beatPulse - amount) })),
+  setArMode: (enabled) => set({ arMode: enabled }),
   toggleARMode: () => set((state) => ({ arMode: !state.arMode })),
 
   togglePause: () => {
@@ -72,6 +73,7 @@ export const useStore = create((set, get) => ({
     activeLyrics: [],
     lyricsData: [],
     capturedLyrics: [],
+    instrumentalGaps: [],
     player: null,
     currentPosition: 0,
     shutterSpeed: 1.0,

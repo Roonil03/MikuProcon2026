@@ -436,8 +436,22 @@ const DynamicPostProcessing = ({ isMobileDevice }) => {
   );
 };
 
-const performCapture = (camera, viewport) => {
-  const { currentPosition, lyricsData, captureLyric, incrementScore, isMobile, cursorPosition, shutterSpeed, sweepOffset } = useStore.getState();
+const performCapture = (camera) => {
+  const {
+    appStatus,
+    isPaused,
+    currentPosition,
+    lyricsData,
+    capturedLyrics,
+    captureLyric,
+    incrementScore,
+    isMobile,
+    cursorPosition,
+    shutterSpeed,
+    sweepOffset,
+  } = useStore.getState();
+
+  if (appStatus !== 'playing' || isPaused) return false;
 
   let closestLyric = null;
   let minDiff = Infinity;
@@ -516,7 +530,7 @@ const performCapture = (camera, viewport) => {
     }
   }
 
-  if (closestLyric) {
+  if (closestLyric && !capturedLyrics.some(lyric => lyric.id === closestLyric.id)) {
     const audio = new Audio(ASSETS.SFX_CLICK);
     audio.play().catch(() => {});
 
@@ -542,7 +556,7 @@ const HitDetectionLayer = () => {
   const { viewport, camera } = useThree();
 
   const handlePointerDown = () => {
-    performCapture(camera, viewport);
+    performCapture(camera);
   };
 
   return (

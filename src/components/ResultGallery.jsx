@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import { useRef, useCallback } from 'react';
 import html2canvas from 'html2canvas';
 import { useStore } from '../store/useStore';
 
@@ -6,13 +6,15 @@ const WARM_GOLD = 'rgba(230, 199, 137, 1)';
 const COOL_BLUE = 'rgba(143, 199, 234, 1)';
 
 const PolaroidCard = ({ lyric, index }) => {
+  const rotation = (index % 2 === 0 ? -1 : 1) * (2 + ((index * 37) % 40) / 10);
+
   return (
     <div style={{
       display: 'inline-block',
       background: '#fdfdfd',
       padding: '12px 12px 40px 12px',
       boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
-      transform: `rotate(${(index % 2 === 0 ? -1 : 1) * (2 + Math.random() * 4)}deg)`,
+      transform: `rotate(${rotation}deg)`,
       margin: '10px',
       minWidth: '120px',
       textAlign: 'center',
@@ -61,7 +63,9 @@ const PolaroidCard = ({ lyric, index }) => {
 
 export const ResultGallery = () => {
   const galleryRef = useRef(null);
-  const { capturedLyrics, score, language } = useStore();
+  const capturedLyrics = useStore(state => state.capturedLyrics);
+  const score = useStore(state => state.score);
+  const language = useStore(state => state.language);
 
   const bodyFont = language === 'ja'
     ? '"Shizuru", system-ui'
@@ -78,7 +82,7 @@ export const ResultGallery = () => {
       link.download = 'shutter-chance-archive.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
-    } catch (err) {
+    } catch {
       // Silent fallback
     }
   }, []);
@@ -106,6 +110,22 @@ export const ResultGallery = () => {
           {language === 'ja' ? '\u30AD\u30E3\u30D7\u30C1\u30E3\u306A\u3057' : 'No Captures'}
         </h2>
         <p>{language === 'ja' ? '\u3053\u306E\u30BB\u30C3\u30B7\u30E7\u30F3\u3067\u306F\u6B4C\u8A5E\u304C\u30AD\u30E3\u30D7\u30C1\u30E3\u3055\u308C\u307E\u305B\u3093\u3067\u3057\u305F\u3002' : 'No lyrics were captured during this session.'}</p>
+        <button
+          onClick={handleRestart}
+          style={{
+            marginTop: '20px',
+            padding: '14px 36px',
+            fontSize: language === 'ja' ? '0.85rem' : '1.1rem',
+            fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Kranky", sans-serif',
+            background: 'transparent',
+            color: COOL_BLUE,
+            border: `1px solid ${COOL_BLUE}`,
+            cursor: 'pointer',
+            letterSpacing: '3px',
+          }}
+        >
+          {language === 'ja' ? '曲をリスタート' : 'Restart Song'}
+        </button>
       </div>
     );
   }
