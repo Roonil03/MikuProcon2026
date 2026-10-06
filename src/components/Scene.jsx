@@ -169,25 +169,18 @@ const CameraController = () => {
   const { camera } = useThree();
   const targetRotation = useRef({ x: 0, y: 0 });
   const hasGyroscope = useRef(false);
+  const requiresGyroscopePermission = useRef(false);
 
   useEffect(() => {
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     useStore.getState().setIsMobile(isTouchDevice);
 
     if (isTouchDevice && window.DeviceOrientationEvent) {
-      const requestPermission = async () => {
-        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-          try {
-            const permission = await DeviceOrientationEvent.requestPermission();
-            if (permission === 'granted') hasGyroscope.current = true;
-          } catch {
-            hasGyroscope.current = false;
-          }
-        } else {
-          hasGyroscope.current = true;
-        }
-      };
-      requestPermission();
+      const requiresPermission = typeof window.DeviceOrientationEvent.requestPermission === 'function';
+      requiresGyroscopePermission.current = requiresPermission;
+      hasGyroscope.current = requiresPermission
+        ? useStore.getState().orientationPermission === 'granted'
+        : true;
 
       const handleOrientation = (event) => {
         if (!hasGyroscope.current) return;
@@ -206,9 +199,13 @@ const CameraController = () => {
 
   /* eslint-disable react-hooks/immutability -- Three.js cameras are updated imperatively inside R3F's frame loop. */
   useFrame(() => {
-    const { isMobile, cursorPosition, sweepOffset } = useStore.getState();
+    const { isMobile, cursorPosition, sweepOffset, orientationPermission } = useStore.getState();
 
-    if (!isMobile) {
+    if (requiresGyroscopePermission.current && orientationPermission === 'granted') {
+      hasGyroscope.current = true;
+    }
+
+    if (!isMobile || !hasGyroscope.current) {
       const nx = cursorPosition.x * 2 - 1;
       const ny = cursorPosition.y * 2 - 1;
       targetRotation.current.x = -ny * 0.4;

@@ -146,7 +146,8 @@ export const IntroScreen = () => {
   const [contentVisible, setContentVisible] = useState(false);
   const [btnVisible, setBtnVisible] = useState(false);
   const [countdown, setCountdown] = useState(null);
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const isMobile = navigator.maxTouchPoints > 0
+    || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   const language = useStore(state => state.language);
   const appStage = useStore(state => state.appStage);
   const t = language === 'ja' ? TEXT_JA : TEXT_EN;
@@ -164,10 +165,8 @@ export const IntroScreen = () => {
   }, []);
 
   useEffect(() => {
-    const unsub = useStore.subscribe(
-      (state) => state.appStage,
-      (stage) => {
-        if (stage === 'ready' && particlesRef.current) {
+    const unsub = useStore.subscribe((state, previousState) => {
+        if (state.appStage === 'ready' && previousState.appStage !== 'ready' && particlesRef.current) {
           const pointsMesh = particlesRef.current.getPoints();
           if (pointsMesh && pointsMesh.material) {
             gsap.to(pointsMesh.material, {
@@ -177,8 +176,7 @@ export const IntroScreen = () => {
             });
           }
         }
-      }
-    );
+      });
     return unsub;
   }, []);
 
@@ -258,6 +256,13 @@ export const IntroScreen = () => {
   const handleStart = () => {
     const audio = new Audio(ASSETS.SFX_CLICK);
     audio.play().catch(() => {});
+
+    const orientationEvent = window.DeviceOrientationEvent;
+    if (isMobile && typeof orientationEvent?.requestPermission === 'function') {
+      orientationEvent.requestPermission()
+        .then(permission => useStore.getState().setOrientationPermission(permission))
+        .catch(() => useStore.getState().setOrientationPermission('denied'));
+    }
 
     setCountdown(3);
     let count = 3;
