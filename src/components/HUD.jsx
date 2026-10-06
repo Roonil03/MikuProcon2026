@@ -1,14 +1,19 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useStore, MAX_GALLERY_DISPLAY } from '../store/useStore';
 import { ASSETS } from '../constants/assets';
 import { xrStore } from './Scene';
 
 const WARM_GOLD = 'rgba(230, 199, 137, 1)';
-const COOL_BLUE = 'rgba(143, 199, 234, 1)';
 const WARM_GOLD_HALF = 'rgba(230, 199, 137, 0.5)';
 
 export const HUD = () => {
-  const { appStatus, score, capturedLyrics, isPaused, arMode, isMobile, language } = useStore();
+  const appStatus = useStore(state => state.appStatus);
+  const score = useStore(state => state.score);
+  const capturedLyrics = useStore(state => state.capturedLyrics);
+  const isPaused = useStore(state => state.isPaused);
+  const arMode = useStore(state => state.arMode);
+  const isMobile = useStore(state => state.isMobile);
+  const language = useStore(state => state.language);
   const crosshairRef = useRef(null);
 
   const bodyFont = language === 'ja'
@@ -16,21 +21,30 @@ export const HUD = () => {
     : '"Kranky", sans-serif';
 
   useEffect(() => {
+    let animationFrame = null;
+    let latestPoint = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+
     const handleMove = (e) => {
       const x = e.clientX ?? e.touches?.[0]?.clientX ?? (window.innerWidth / 2);
       const y = e.clientY ?? e.touches?.[0]?.clientY ?? (window.innerHeight / 2);
-      
-      if (crosshairRef.current) {
-        crosshairRef.current.style.left = `${x - 50}px`;
-        crosshairRef.current.style.top = `${y - 50}px`;
-      }
+      latestPoint = { x, y };
 
-      useStore.getState().setCursorPosition(x / window.innerWidth, y / window.innerHeight);
+      if (animationFrame !== null) return;
+
+      animationFrame = window.requestAnimationFrame(() => {
+        animationFrame = null;
+        const { x: frameX, y: frameY } = latestPoint;
+        if (crosshairRef.current) {
+          crosshairRef.current.style.transform = `translate3d(${frameX - 50}px, ${frameY - 50}px, 0)`;
+        }
+        useStore.getState().setCursorPosition(frameX / window.innerWidth, frameY / window.innerHeight);
+      });
     };
 
     window.addEventListener('mousemove', handleMove);
-    window.addEventListener('touchmove', handleMove);
+    window.addEventListener('touchmove', handleMove, { passive: true });
     return () => {
+      if (animationFrame !== null) window.cancelAnimationFrame(animationFrame);
       window.removeEventListener('mousemove', handleMove);
       window.removeEventListener('touchmove', handleMove);
     };
@@ -133,10 +147,12 @@ export const HUD = () => {
         ref={crosshairRef}
         style={{
           position: 'absolute',
-          left: 'calc(50vw - 50px)',
-          top: 'calc(50vh - 50px)',
+          left: 0,
+          top: 0,
           width: '100px',
           height: '100px',
+          transform: 'translate3d(calc(50vw - 50px), calc(50vh - 50px), 0)',
+          willChange: 'transform',
           pointerEvents: 'none',
         }}
       >

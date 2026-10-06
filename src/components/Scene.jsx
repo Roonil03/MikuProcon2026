@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useMemo } from 'react';
+import { useRef, useEffect, useMemo } from 'react';
 import { Canvas, useFrame, useThree, extend } from '@react-three/fiber';
 import { PerspectiveCamera, Text, shaderMaterial } from '@react-three/drei';
 import { EffectComposer, DepthOfField, ChromaticAberration, Bloom } from '@react-three/postprocessing';
@@ -266,7 +266,6 @@ const LyricMesh = ({ lyric }) => {
 
 const CharacterParticles = () => {
   const pointsRef = useRef();
-  const currentPosition = useStore(state => state.currentPosition);
   const gaps = useStore(state => state.instrumentalGaps);
   const currentGap = useRef(null);
 
@@ -284,6 +283,7 @@ const CharacterParticles = () => {
 
   useFrame(() => {
     if (!pointsRef.current) return;
+    const currentPosition = useStore.getState().currentPosition;
     const geo = pointsRef.current.geometry;
     const posAttr = geo.attributes.position;
     const colAttr = geo.attributes.color;
@@ -555,14 +555,22 @@ const HitDetectionLayer = () => {
 
 export const xrStore = createXRStore();
 
-const isMobileDevice = typeof navigator !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+const isTouchDevice = typeof window !== 'undefined'
+  && (window.matchMedia?.('(pointer: coarse)').matches || navigator.maxTouchPoints > 0);
+const hasLimitedHardware = typeof navigator !== 'undefined'
+  && ((navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4);
+const useReducedEffects = isTouchDevice || hasLimitedHardware;
+const maxDevicePixelRatio = useReducedEffects ? 1.25 : 1.5;
 
 export const Scene = () => {
   const arMode = useStore(state => state.arMode);
 
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1, backgroundColor: arMode ? 'transparent' : '#0a0a0f' }}>
-      <Canvas dpr={isMobileDevice ? [1, 1.5] : [1, 2]}>
+      <Canvas
+        dpr={[1, maxDevicePixelRatio]}
+        gl={{ antialias: !useReducedEffects, powerPreference: 'high-performance' }}
+      >
         <XR store={xrStore}>
           <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={75} />
           <CameraController />
@@ -574,7 +582,7 @@ export const Scene = () => {
           <HitDetectionLayer />
           
           {!arMode && <SoundscapeCorridor />}
-          {!arMode && <DynamicPostProcessing isMobileDevice={isMobileDevice} />}
+          {!arMode && !useReducedEffects && <DynamicPostProcessing isMobileDevice={isTouchDevice} />}
         </XR>
       </Canvas>
     </div>
