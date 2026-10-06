@@ -379,8 +379,8 @@ export const IntroScreen = () => {
         {appStage === 'ready' ? t.trackReady : (appStage === 'loading_track' ? t.loadingTrack : (appStage === 'forming' ? t.forming : 'PRELOADING...'))}
       </div>
 
-      <div className="intro-scroll-region">
-        <div className="intro-scroll-content">
+      <div className="intro-viewport">
+        <div className="intro-content">
       {showOverlay && (
         <div className="intro-panel" style={{
           position: 'relative',
@@ -395,12 +395,12 @@ export const IntroScreen = () => {
           backdropFilter: 'blur(6px)',
           WebkitBackdropFilter: 'blur(6px)',
         }}>
-          <div style={{
+          <div className="intro-title" style={{
             opacity: titleVisible ? 1 : 0,
             transform: titleVisible ? 'translateY(0)' : 'translateY(20px)',
             transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
           }}>
-            <div style={{
+            <div className="intro-crosshair" style={{
               width: '70px', height: '70px',
               border: `1.5px solid ${WARM_GOLD_HALF}`,
               borderRadius: '50%',
@@ -415,7 +415,7 @@ export const IntroScreen = () => {
               <div style={{ position: 'absolute', left: '50%', top: '28%', bottom: '28%', width: '1px', background: WARM_GOLD }} />
             </div>
 
-            <h1 style={{
+            <h1 className="intro-heading" style={{
               fontFamily: '"Kranky", sans-serif',
               fontSize: '3.2rem',
               fontWeight: 400,
@@ -429,10 +429,10 @@ export const IntroScreen = () => {
             }}>
               Shutter
               <br />
-              <span style={{ fontSize: '2.4rem', letterSpacing: '10px' }}>Chance</span>
+              <span className="intro-heading-subtitle" style={{ fontSize: '2.4rem', letterSpacing: '10px' }}>Chance</span>
             </h1>
 
-            <div style={{
+            <div className="intro-byline" style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -452,13 +452,13 @@ export const IntroScreen = () => {
             </div>
           </div>
 
-          <div style={{
+          <div className="intro-instructions-wrapper" style={{
             opacity: contentVisible ? 1 : 0,
             transform: contentVisible ? 'translateY(0)' : 'translateY(16px)',
             transition: 'all 0.7s cubic-bezier(0.16, 1, 0.3, 1)',
             marginTop: '36px',
           }}>
-            <div style={{
+            <div className="intro-instructions" style={{
               textAlign: 'left',
               background: 'rgba(230,199,137,0.02)',
               border: '1px solid rgba(230,199,137,0.08)',
@@ -468,7 +468,7 @@ export const IntroScreen = () => {
               color: COOL_BLUE,
               fontFamily: bodyFont,
             }}>
-              <div style={{
+              <div className="intro-instructions-heading" style={{
                 fontFamily: '"Press Start 2P", sans-serif',
                 color: WARM_GOLD,
                 fontWeight: 600,
@@ -502,13 +502,14 @@ export const IntroScreen = () => {
           </div>
 
           {showBeginButton && (
-            <div style={{
+            <div className="intro-begin-area" style={{
               opacity: btnVisible ? 1 : 0,
               transform: btnVisible ? 'translateY(0)' : 'translateY(12px)',
               transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
               marginTop: '32px',
             }}>
               <button
+                className="intro-begin-button"
                 onClick={handleBegin}
                 onMouseEnter={playHover}
                 style={{
@@ -540,7 +541,7 @@ export const IntroScreen = () => {
                 {t.begin}
               </button>
 
-              <div style={{
+              <div className="intro-detection" style={{
                 marginTop: '15px',
                 fontFamily: '"Press Start 2P", sans-serif',
                 fontSize: '0.45rem',

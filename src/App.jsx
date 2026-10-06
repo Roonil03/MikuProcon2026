@@ -14,7 +14,7 @@ function App() {
   const showGame = appStatus === 'playing' || appStatus === 'ready' || appStatus === 'loading' || appStatus === 'results';
 
   return (
-    <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden', background: '#000000', backgroundColor: '#000000', cursor: appStatus === 'playing' ? 'none' : 'auto' }}>
+    <div className="app-shell" style={{ position: 'relative', overflow: 'hidden', background: '#000000', backgroundColor: '#000000', cursor: appStatus === 'playing' ? 'none' : 'auto' }}>
       {showIntro && <IntroScreen />}
       {showGame && !showIntro && (
         <>
