@@ -290,11 +290,27 @@ const CharacterParticles = () => {
   const pointsRef = useRef();
   const gaps = useStore(state => state.instrumentalGaps);
   const currentGap = useRef(null);
-  const { positions, colors } = CHARACTER_PARTICLE_DATA;
+  const { positions, colors } = useMemo(() => ({
+    positions: CHARACTER_PARTICLE_DATA.positions.slice(),
+    colors: CHARACTER_PARTICLE_DATA.colors.slice(),
+  }), []);
+
+  useEffect(() => {
+    const unsubscribe = useStore.subscribe((state, previous) => {
+      if (state.isPaused === previous.isPaused && state.appStatus === previous.appStatus) return;
+      const paused = state.isPaused || state.appStatus !== 'playing';
+      for (const tween of gsap.getTweensOf([positions, colors])) tween.paused(paused);
+    });
+    return () => {
+      unsubscribe();
+      gsap.killTweensOf([positions, colors]);
+    };
+  }, [positions, colors]);
 
   useFrame(() => {
     if (!pointsRef.current) return;
-    const currentPosition = useStore.getState().currentPosition;
+    const { currentPosition, isPaused, appStatus } = useStore.getState();
+    if (isPaused || appStatus !== 'playing') return;
     const geo = pointsRef.current.geometry;
     const posAttr = geo.attributes.position;
     const colAttr = geo.attributes.color;
@@ -447,7 +463,7 @@ const DynamicPostProcessing = ({ isMobileDevice }) => {
   );
 };
 
-const performCapture = (camera) => {
+const performCapture = (camera, pointer) => {
   const {
     appStatus,
     isPaused,
@@ -457,15 +473,14 @@ const performCapture = (camera) => {
     captureLyric,
     incrementScore,
     isMobile,
-    cursorPosition,
     shutterSpeed,
     sweepOffset,
   } = useStore.getState();
 
   if (appStatus !== 'playing' || isPaused) return false;
 
-  const ndcX = cursorPosition.x * 2 - 1;
-  const ndcY = -(cursorPosition.y * 2 - 1);
+  const ndcX = pointer.x * 2 - 1;
+  const ndcY = -(pointer.y * 2 - 1);
   camera.updateMatrixWorld();
   captureMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
   const capturedIds = new Set(capturedLyrics.map(lyric => lyric.id));
@@ -497,10 +512,15 @@ const performCapture = (camera) => {
 };
 
 const HitDetectionLayer = () => {
-  const { viewport, camera } = useThree();
+  const { viewport, camera, gl } = useThree();
 
-  const handlePointerDown = () => {
-    performCapture(camera);
+  const handlePointerDown = (event) => {
+    const rect = gl.domElement.getBoundingClientRect();
+    const pointer = {
+      x: (event.clientX - rect.left) / rect.width,
+      y: (event.clientY - rect.top) / rect.height,
+    };
+    performCapture(camera, pointer);
   };
 
   return (

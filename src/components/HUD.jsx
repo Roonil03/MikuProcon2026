@@ -25,6 +25,7 @@ export const HUD = () => {
     let latestPoint = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 
     const handleMove = (e) => {
+      if (useStore.getState().isMobile && useStore.getState().orientationPermission === 'granted') return;
       const x = e.clientX ?? e.touches?.[0]?.clientX ?? (window.innerWidth / 2);
       const y = e.clientY ?? e.touches?.[0]?.clientY ?? (window.innerHeight / 2);
       latestPoint = { x, y };
@@ -52,6 +53,7 @@ export const HUD = () => {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
+      if (e.repeat) return;
       if (e.key === 'Escape' && appStatus === 'playing') {
         useStore.getState().togglePause();
       } else if (e.key === 'Escape' && isPaused) {
@@ -61,6 +63,17 @@ export const HUD = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [appStatus, isPaused]);
+
+  useEffect(() => {
+    const handleVisibility = () => {
+      const state = useStore.getState();
+      if (document.hidden && state.appStatus === 'playing' && !state.isPaused) {
+        state.togglePause();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, []);
 
   const handleStart = () => {
     const player = useStore.getState().player;
@@ -111,15 +124,13 @@ export const HUD = () => {
                 }}
                 onClick={() => {
                   if (arMode) {
-                    useStore.getState().setArMode(false);
+                    xrStore.getState().session?.end().catch(console.error);
                   } else {
                     if (!navigator.xr) {
                       alert("WebXR AR is not supported on this browser. Try using Google Chrome for Android, or a WebXR viewer app.");
                       return;
                     }
-                    xrStore.enterAR().then(() => {
-                      useStore.getState().setArMode(true);
-                    }).catch(err => {
+                    xrStore.enterAR().catch(err => {
                       console.error("AR failed", err);
                       alert("Failed to start AR. Make sure camera permissions are granted.");
                       useStore.getState().setArMode(false);
@@ -130,15 +141,16 @@ export const HUD = () => {
                 {arMode ? 'DISABLE AR' : 'AR VIEWFINDER'}
               </button>
             )}
-            <div style={{
+            <button type="button" style={{
               fontSize: '0.7rem', letterSpacing: '2px', color: '#887766',
               textTransform: 'uppercase', pointerEvents: 'auto', cursor: 'pointer',
               fontFamily: '"Press Start 2P", sans-serif',
+              background: 'transparent', border: 0, padding: '8px',
             }}
               onClick={() => useStore.getState().togglePause()}
             >
               [ESC] Pause
-            </div>
+            </button>
           </div>
         )}
       </div>

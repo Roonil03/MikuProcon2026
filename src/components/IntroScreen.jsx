@@ -96,7 +96,7 @@ const MikuParticles = React.forwardRef((props, ref) => {
     if (pointsRef.current) {
       const geo = pointsRef.current.geometry;
       geo.setAttribute('position', new THREE.BufferAttribute(randomPositions.slice(), 3));
-      geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(colors.slice(), 3));
       geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
     }
   }, [randomPositions, colors, sizes]);
@@ -147,12 +147,27 @@ export const IntroScreen = () => {
   const [contentVisible, setContentVisible] = useState(false);
   const [btnVisible, setBtnVisible] = useState(false);
   const [countdown, setCountdown] = useState(null);
+  const countdownInterval = useRef(null);
   const isMobile = navigator.maxTouchPoints > 0
     || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   const language = useStore(state => state.language);
   const appStage = useStore(state => state.appStage);
   const t = language === 'ja' ? TEXT_JA : TEXT_EN;
   const particlesRef = useRef(null);
+
+  useEffect(() => () => {
+    if (countdownInterval.current !== null) clearInterval(countdownInterval.current);
+    const particles = particlesRef.current;
+    if (particles) {
+      const geometry = particles.getGeometry();
+      if (geometry) {
+        gsap.killTweensOf(geometry.attributes.position?.array);
+        gsap.killTweensOf(geometry.attributes.color?.array);
+      }
+      gsap.killTweensOf(particles.getGroup()?.rotation);
+      gsap.killTweensOf(particles.getPoints()?.material);
+    }
+  }, []);
 
   const bodyFont = language === 'ja'
     ? '"Shizuru", system-ui'
@@ -182,6 +197,7 @@ export const IntroScreen = () => {
   }, []);
 
   const handleBegin = () => {
+    if (useStore.getState().appStage !== 'intro') return;
     const audio = new Audio(ASSETS.SFX_CLICK);
     audio.play().catch(() => {});
 
@@ -258,6 +274,7 @@ export const IntroScreen = () => {
   };
 
   const handleStart = () => {
+    if (countdownInterval.current !== null) return;
     const audio = new Audio(ASSETS.SFX_CLICK);
     audio.play().catch(() => {});
 
@@ -270,12 +287,13 @@ export const IntroScreen = () => {
 
     setCountdown(3);
     let count = 3;
-    const interval = setInterval(() => {
+    countdownInterval.current = setInterval(() => {
       count -= 1;
       if (count > 0) {
         setCountdown(count);
       } else {
-        clearInterval(interval);
+        clearInterval(countdownInterval.current);
+        countdownInterval.current = null;
         const player = useStore.getState().player;
         if (player) {
           player.requestPlay();
