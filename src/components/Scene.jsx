@@ -226,7 +226,7 @@ const CameraController = () => {
   return null;
 };
 
-const LyricMesh = ({ lyric }) => {
+const LyricMesh = ({ lyric, characters }) => {
   const textRef = useRef();
 
   useFrame(() => {
@@ -263,7 +263,8 @@ const LyricMesh = ({ lyric }) => {
       anchorX="center"
       anchorY="middle"
       visible={false}
-      font="/MikuProcon2026/fonts/NotoSansJP-Bold.otf"
+      font={`${import.meta.env.BASE_URL}fonts/NotoSansJP-Bold.otf`}
+      characters={characters}
     >
       {lyric.text}
     </Text>
@@ -274,20 +275,51 @@ const LyricsCorridor = () => {
   const lyricsData = useStore(state => state.lyricsData);
   const activeChunkIndex = useStore(state => Math.floor(state.currentPosition / 2000));
   const shutterSpeed = useStore(state => state.shutterSpeed);
+  // A shared cache key prepares the entire song's glyphs, including later chunks.
+  const characters = useMemo(() => [...new Set(lyricsData.map(lyric => lyric.text).join(''))].join(''), [lyricsData]);
 
   const activeLyrics = useMemo(() => {
     const startTime = activeChunkIndex * 2000 - 1000;
     const endTime = (activeChunkIndex + 1) * 2000 + 3000 / shutterSpeed;
-    return lyricsData.slice(lowerBound(lyricsData, startTime), lowerBound(lyricsData, endTime + 1));
+    const lyrics = lyricsData.slice(lowerBound(lyricsData, startTime), lowerBound(lyricsData, endTime + 1));
+    // Even songs with a long lead-in need one hidden text to prepare the font.
+    return lyrics.length || activeChunkIndex !== 0 ? lyrics : lyricsData.slice(0, 1);
   }, [lyricsData, activeChunkIndex, shutterSpeed]);
 
   return (
     <group>
       {activeLyrics.map((lyric) => (
-        <LyricMesh key={lyric.id} lyric={lyric} />
+        <LyricMesh key={lyric.id} lyric={lyric} characters={characters} />
       ))}
     </group>
   );
+};
+
+const ScenePreparation = () => {
+  const started = useRef(false);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
+  useFrame(({ gl, scene, camera, invalidate }) => {
+    if (started.current) return;
+    let pendingText = false;
+    scene.traverse(object => {
+      if ('textRenderInfo' in object && !object.textRenderInfo) pendingText = true;
+    });
+    if (pendingText) return; // Text's onSync requests another demand frame.
+    started.current = true;
+    gl.compileAsync(scene, camera).catch(error => {
+      // Shader preparation is optional; retain ordinary rendering as fallback.
+      console.error('Scene preparation failed', error);
+    }).then(() => {
+      if (!mounted.current) return;
+      useStore.getState().setGamePrepared(true);
+      invalidate();
+    });
+  });
+  return null;
 };
 
 const DynamicPostProcessing = ({ isMobileDevice }) => {
@@ -423,6 +455,7 @@ export const Scene = () => {
           
           {!arMode && <SoundscapeCorridor />}
           {!arMode && !useReducedEffects && <DynamicPostProcessing isMobileDevice={isTouchDevice} />}
+          <ScenePreparation />
         </XR>
       </Canvas>
     </div>

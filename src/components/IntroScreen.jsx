@@ -23,6 +23,7 @@ const TEXT_EN = {
   captured: 'Captured lyrics are archived as polaroid frames. Press Escape at any time to pause.',
   begin: 'Begin',
   start: 'Start',
+  preparingGame: 'Preparing...',
   gyroscope: 'GYROSCOPE MODE',
   cursor: 'CURSOR MODE',
   detected: 'DETECTED',
@@ -41,6 +42,7 @@ const TEXT_JA = {
   captured: '\u30AD\u30E3\u30D7\u30C1\u30E3\u3057\u305F\u6B4C\u8A5E\u306F\u30DD\u30E9\u30ED\u30A4\u30C9\u30D5\u30EC\u30FC\u30E0\u3068\u3057\u3066\u30A2\u30FC\u30AB\u30A4\u30D6\u3055\u308C\u307E\u3059\u3002\u3044\u3064\u3067\u3082Esc\u30AD\u30FC\u3067\u4E00\u6642\u505C\u6B62\u3067\u304D\u307E\u3059\u3002',
   begin: '\u59CB\u3081\u308B',
   start: '\u30B9\u30BF\u30FC\u30C8',
+  preparingGame: '準備中...',
   gyroscope: '\u30B8\u30E3\u30A4\u30ED\u30E2\u30FC\u30C9',
   cursor: '\u30AB\u30FC\u30BD\u30EB\u30E2\u30FC\u30C9',
   detected: '\u691C\u51FA',
@@ -152,6 +154,7 @@ export const IntroScreen = () => {
     || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   const language = useStore(state => state.language);
   const appStage = useStore(state => state.appStage);
+  const gamePrepared = useStore(state => state.gamePrepared);
   const t = language === 'ja' ? TEXT_JA : TEXT_EN;
   const particlesRef = useRef(null);
 
@@ -274,7 +277,7 @@ export const IntroScreen = () => {
   };
 
   const handleStart = () => {
-    if (countdownInterval.current !== null) return;
+    if (countdownInterval.current !== null || !useStore.getState().gamePrepared) return;
     const audio = new Audio(ASSETS.SFX_CLICK);
     audio.play().catch(() => {});
 
@@ -610,6 +613,8 @@ export const IntroScreen = () => {
           ) : (
             <button
               onClick={handleStart}
+              disabled={!gamePrepared}
+              aria-busy={!gamePrepared}
               onMouseEnter={playHover}
               style={{
                 fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Kranky", sans-serif',
@@ -638,7 +643,7 @@ export const IntroScreen = () => {
                 e.target.style.boxShadow = '0 0 60px rgba(230,199,137,0.3)';
               }}
             >
-              {t.start}
+              {gamePrepared ? t.start : t.preparingGame}
             </button>
           )}
         </div>
