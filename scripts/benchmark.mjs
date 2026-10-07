@@ -45,6 +45,8 @@ function measure(capture) {
 const before = measure(copyAll);
 const after = measure(position => wasmCapture(lyrics, capturedIds, position, 1, matrix, 0, 0, true));
 const fallback = measure(position => jsCapture(lyrics, capturedIds, position, 1, matrix, 0, 0, true));
+const desktopWasm = measure(position => wasmCapture(lyrics, capturedIds, position, 1, matrix, 0, 0, false));
+const desktopJavaScript = measure(position => jsCapture(lyrics, capturedIds, position, 1, matrix, 0, 0, false));
 if (before.checksum !== after.checksum || before.checksum !== fallback.checksum) {
   throw new Error('Capture results differ');
 }
@@ -63,6 +65,8 @@ console.log(JSON.stringify({
   beforeCopyAll: before,
   afterWindowedWasm: after,
   windowedJavaScript: fallback,
+  desktopWindowedWasm: desktopWasm,
+  desktopWindowedJavaScript: desktopJavaScript,
   initialJavaScript: initial,
   deferredGameFile: assets.find(file => file.startsWith('Game-')),
   deferredExportFile: assets.find(file => file.startsWith('html2canvas-')),

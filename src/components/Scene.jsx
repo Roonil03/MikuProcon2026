@@ -1,4 +1,4 @@
-import { useRef, useEffect, useMemo } from 'react';
+import { Suspense, useRef, useEffect, useMemo } from 'react';
 import { Canvas, useFrame, useThree, extend } from '@react-three/fiber';
 import { PerspectiveCamera, Text, shaderMaterial } from '@react-three/drei';
 import { EffectComposer, DepthOfField, ChromaticAberration, Bloom } from '@react-three/postprocessing';
@@ -8,7 +8,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { useStore } from '../store/useStore';
 import { ASSETS } from '../constants/assets';
-import characterData from '../lib/characterData.json';
+import { CharacterParticles } from './CharacterParticles';
 import { xrStore } from '../lib/xrStore';
 import { createCaptureEngine, lowerBound } from '../lib/captureEngine';
 
@@ -226,7 +226,7 @@ const CameraController = () => {
   return null;
 };
 
-const LyricMesh = ({ lyric }) => {
+const LyricMesh = ({ lyric, characters }) => {
   const textRef = useRef();
 
   useFrame(() => {
@@ -263,149 +263,11 @@ const LyricMesh = ({ lyric }) => {
       anchorX="center"
       anchorY="middle"
       visible={false}
-      font="/MikuProcon2026/fonts/NotoSansJP-Bold.otf"
+      font={`${import.meta.env.BASE_URL}fonts/NotoSansJP-Bold.otf`}
+      characters={characters}
     >
       {lyric.text}
     </Text>
-  );
-};
-
-const CHARACTER_PARTICLE_COUNT = 1500;
-const createCharacterParticleData = () => {
-  const positions = new Float32Array(CHARACTER_PARTICLE_COUNT * 3);
-  const colors = new Float32Array(CHARACTER_PARTICLE_COUNT * 3);
-  for (let i = 0; i < CHARACTER_PARTICLE_COUNT; i++) {
-    positions[i * 3] = (Math.random() - 0.5) * 100;
-    positions[i * 3 + 1] = (Math.random() - 0.5) * 100;
-    positions[i * 3 + 2] = (Math.random() - 0.5) * 100 - 50;
-    colors[i * 3] = 1;
-    colors[i * 3 + 1] = 1;
-    colors[i * 3 + 2] = 1;
-  }
-  return { positions, colors };
-};
-const CHARACTER_PARTICLE_DATA = createCharacterParticleData();
-
-const CharacterParticles = () => {
-  const pointsRef = useRef();
-  const gaps = useStore(state => state.instrumentalGaps);
-  const currentGap = useRef(null);
-  const { positions, colors } = useMemo(() => ({
-    positions: CHARACTER_PARTICLE_DATA.positions.slice(),
-    colors: CHARACTER_PARTICLE_DATA.colors.slice(),
-  }), []);
-
-  useEffect(() => {
-    const unsubscribe = useStore.subscribe((state, previous) => {
-      if (state.isPaused === previous.isPaused && state.appStatus === previous.appStatus) return;
-      const paused = state.isPaused || state.appStatus !== 'playing';
-      for (const tween of gsap.getTweensOf([positions, colors])) tween.paused(paused);
-    });
-    return () => {
-      unsubscribe();
-      gsap.killTweensOf([positions, colors]);
-    };
-  }, [positions, colors]);
-
-  useFrame(() => {
-    if (!pointsRef.current) return;
-    const { currentPosition, isPaused, appStatus } = useStore.getState();
-    if (isPaused || appStatus !== 'playing') return;
-    const geo = pointsRef.current.geometry;
-    const posAttr = geo.attributes.position;
-    const colAttr = geo.attributes.color;
-
-    const activeGap = gaps.find(g => currentPosition >= g.startTime && currentPosition <= g.endTime);
-    
-    if (activeGap) {
-      if (currentGap.current !== activeGap) {
-        currentGap.current = activeGap;
-        // pick a random character shape based on the gap start time (pseudo-random but consistent)
-        const shapeIndex = Math.floor((activeGap.startTime / 1000) % characterData.length);
-        const charShape = characterData[shapeIndex] || characterData[0];
-        
-        const targetPos = new Float32Array(1500 * 3);
-        const targetCol = new Float32Array(1500 * 3);
-        
-        for(let i=0; i<1500; i++) {
-          const pt = charShape.points[i] || charShape.points[0];
-          targetPos[i*3] = pt.x;
-          targetPos[i*3+1] = pt.y;
-          targetPos[i*3+2] = -30; // 30 units away
-          targetCol[i*3] = pt.color[0];
-          targetCol[i*3+1] = pt.color[1];
-          targetCol[i*3+2] = pt.color[2];
-        }
-
-        gsap.to(posAttr.array, {
-          endArray: targetPos,
-          duration: 2,
-          ease: 'power2.out',
-          onUpdate: () => { posAttr.needsUpdate = true; }
-        });
-        gsap.to(colAttr.array, {
-          endArray: targetCol,
-          duration: 2,
-          ease: 'power2.out',
-          onUpdate: () => { colAttr.needsUpdate = true; }
-        });
-      }
-    } else {
-      if (currentGap.current !== null) {
-        currentGap.current = null;
-        // scatter back to random
-        const targetPos = new Float32Array(1500 * 3);
-        const targetCol = new Float32Array(1500 * 3);
-        for(let i=0; i<1500; i++) {
-          targetPos[i*3] = (Math.random() - 0.5) * 100;
-          targetPos[i*3+1] = (Math.random() - 0.5) * 100;
-          targetPos[i*3+2] = (Math.random() - 0.5) * 100 - 50;
-          targetCol[i*3] = 0.5; // dim out
-          targetCol[i*3+1] = 0.5;
-          targetCol[i*3+2] = 0.5;
-        }
-        gsap.to(posAttr.array, {
-          endArray: targetPos,
-          duration: 3,
-          ease: 'power2.inOut',
-          onUpdate: () => { posAttr.needsUpdate = true; }
-        });
-        gsap.to(colAttr.array, {
-          endArray: targetCol,
-          duration: 3,
-          ease: 'power2.inOut',
-          onUpdate: () => { colAttr.needsUpdate = true; }
-        });
-      }
-    }
-  });
-
-  return (
-    <points ref={pointsRef}>
-      <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          count={CHARACTER_PARTICLE_COUNT}
-          array={positions}
-          itemSize={3}
-        />
-        <bufferAttribute
-          attach="attributes-color"
-          count={CHARACTER_PARTICLE_COUNT}
-          array={colors}
-          itemSize={3}
-        />
-      </bufferGeometry>
-      <pointsMaterial
-        vertexColors
-        size={0.15}
-        sizeAttenuation
-        transparent
-        opacity={0.7}
-        depthWrite={false}
-        blending={THREE.AdditiveBlending}
-      />
-    </points>
   );
 };
 
@@ -413,20 +275,55 @@ const LyricsCorridor = () => {
   const lyricsData = useStore(state => state.lyricsData);
   const activeChunkIndex = useStore(state => Math.floor(state.currentPosition / 2000));
   const shutterSpeed = useStore(state => state.shutterSpeed);
+  // A shared cache key prepares the entire song's glyphs, including later chunks.
+  const characters = useMemo(() => [...new Set(lyricsData.map(lyric => lyric.text).join(''))].join(''), [lyricsData]);
 
   const activeLyrics = useMemo(() => {
     const startTime = activeChunkIndex * 2000 - 1000;
     const endTime = (activeChunkIndex + 1) * 2000 + 3000 / shutterSpeed;
-    return lyricsData.slice(lowerBound(lyricsData, startTime), lowerBound(lyricsData, endTime + 1));
+    const lyrics = lyricsData.slice(lowerBound(lyricsData, startTime), lowerBound(lyricsData, endTime + 1));
+    // Even songs with a long lead-in need one hidden text to prepare the font.
+    return lyrics.length || activeChunkIndex !== 0 ? lyrics : lyricsData.slice(0, 1);
   }, [lyricsData, activeChunkIndex, shutterSpeed]);
 
   return (
     <group>
       {activeLyrics.map((lyric) => (
-        <LyricMesh key={lyric.id} lyric={lyric} />
+        <LyricMesh key={lyric.id} lyric={lyric} characters={characters} />
       ))}
     </group>
   );
+};
+
+const ScenePreparation = () => {
+  const started = useRef(false);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
+  useFrame(({ gl, scene, camera, invalidate }) => {
+    if (started.current) return;
+    let pendingText = false;
+    let textCount = 0;
+    scene.traverse(object => {
+      if ('textRenderInfo' in object) {
+        textCount++;
+        if (!object.textRenderInfo) pendingText = true;
+      }
+    });
+    if (pendingText || textCount === 0) return; // Text's onSync requests another demand frame.
+    started.current = true;
+    gl.compileAsync(scene, camera).catch(error => {
+      // Shader preparation is optional; retain ordinary rendering as fallback.
+      console.error('Scene preparation failed', error);
+    }).then(() => {
+      if (!mounted.current) return;
+      useStore.getState().setGamePrepared(true);
+      invalidate();
+    });
+  });
+  return null;
 };
 
 const DynamicPostProcessing = ({ isMobileDevice }) => {
@@ -436,11 +333,11 @@ const DynamicPostProcessing = ({ isMobileDevice }) => {
   const dofBokeh = useMemo(() => Math.max(0.15, 1.8 / shutterSpeed), [shutterSpeed]);
   const chromaOffset = useMemo(() => {
     const val = Math.min(0.01, 0.005 / shutterSpeed);
-    return [val, val];
+    return new THREE.Vector2(val, val);
   }, [shutterSpeed]);
 
   return (
-    <EffectComposer>
+    <EffectComposer multisampling={2}>
       {!isMobileDevice && (
         <DepthOfField
           focusDistance={0}
@@ -513,6 +410,22 @@ const performCapture = (camera, pointer) => {
 
 const HitDetectionLayer = () => {
   const { viewport, camera, gl } = useThree();
+  const arMode = useStore(state => state.arMode);
+
+  useEffect(() => {
+    const canvas = gl.domElement;
+    const handlePointer = event => {
+      if (gl.xr.isPresenting) return; // XR controller input still uses the plane.
+      const rect = canvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      performCapture(camera, {
+        x: (event.clientX - rect.left) / rect.width,
+        y: (event.clientY - rect.top) / rect.height,
+      });
+    };
+    canvas.addEventListener('pointerdown', handlePointer);
+    return () => canvas.removeEventListener('pointerdown', handlePointer);
+  }, [camera, gl]);
 
   const handlePointerDown = (event) => {
     const rect = gl.domElement.getBoundingClientRect();
@@ -523,6 +436,7 @@ const HitDetectionLayer = () => {
     performCapture(camera, pointer);
   };
 
+  if (!arMode) return null;
   return (
     <mesh position={[0, 0, 4.9]} onPointerDown={handlePointerDown}>
       <planeGeometry args={[viewport.width * 2, viewport.height * 2]} />
@@ -556,12 +470,15 @@ export const Scene = () => {
           <ambientLight intensity={0.5} />
           <directionalLight position={[10, 10, 10]} intensity={1.5} />
 
-          <LyricsCorridor />
+          <Suspense fallback={null}>
+            <LyricsCorridor />
+          </Suspense>
           <CharacterParticles />
           <HitDetectionLayer />
           
           {!arMode && <SoundscapeCorridor />}
           {!arMode && !useReducedEffects && <DynamicPostProcessing isMobileDevice={isTouchDevice} />}
+          <ScenePreparation />
         </XR>
       </Canvas>
     </div>

@@ -13,6 +13,15 @@ const binary = await readFile(new URL('../build/release.wasm', import.meta.url))
 const { instance } = await WebAssembly.instantiate(binary, imports);
 const engines = [createCaptureEngine(null), createCaptureEngine(instance.exports)];
 
+it('WASM refreshes the reused typed view after external memory growth', async () => {
+  const { instance: isolated } = await WebAssembly.instantiate(binary, imports);
+  const capture = createCaptureEngine(isolated.exports);
+  const lyrics = [{ id: 7, startTime: 1000, x: 0, y: 0 }];
+  assert.equal(capture(lyrics, new Set(), 1000, 1, matrix, 0, 0, false), 7);
+  isolated.exports.memory.grow(1);
+  assert.equal(capture(lyrics, new Set(), 1000, 1, matrix, 0, 0, false), 7);
+});
+
 it('finds interval boundaries without scanning the song', () => {
   assert.equal(lowerBound([{ startTime: 10 }, { startTime: 20 }], 20), 1);
   assert.equal(lowerBound([], 0), 0);

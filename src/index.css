@@ -51,7 +51,7 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0 8px;
 }
 
-@media (max-height: 760px), (max-width: 480px) {
+@media (max-height: 900px), (max-width: 480px) {
   .intro-content {
     padding-top: max(52px, env(safe-area-inset-top));
   }
@@ -200,5 +200,11 @@ h1, h2, h3, h4, h5, h6 {
     margin-top: 5px;
     font-size: 0.48rem !important;
     line-height: 1.15 !important;
+  }
+}
+
+@media (max-height: 350px) {
+  .intro-crosshair {
+    display: none !important;
   }
 }

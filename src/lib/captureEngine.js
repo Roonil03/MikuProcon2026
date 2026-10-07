@@ -37,6 +37,7 @@ export function findCapture(lyrics, capturedIds, position, speed, matrix, aimX, 
 export function createCaptureEngine(wasm) {
   let capacity = 0;
   let pointer = 0;
+  let floats = null;
   return (lyrics, capturedIds, position, speed, matrix, aimX, aimY, mobile) => {
     if (!wasm) return findCapture(lyrics, capturedIds, position, speed, matrix, aimX, aimY, mobile);
     const window = 300 / speed;
@@ -48,9 +49,12 @@ export function createCaptureEngine(wasm) {
     if (required > capacity) {
       capacity = Math.max(32, required * 2);
       pointer = wasm.reserveCaptureBuffer(capacity);
+      floats = null;
     }
-    // Allocation can grow memory. Always create the view after reserving it.
-    const floats = new Float32Array(wasm.memory.buffer, pointer, 16 + capacity * 4);
+    // Reuse the view, but replace it after allocation or any WASM memory growth.
+    if (!floats || floats.buffer !== wasm.memory.buffer) {
+      floats = new Float32Array(wasm.memory.buffer, pointer, 16 + capacity * 4);
+    }
     floats.set(matrix, 0);
     let count = 0;
     for (let i = first; i < last; i++) {

@@ -32,11 +32,13 @@ describe("game store", () => {
 
   it("sets and resets optional gameplay state", () => {
     useStore.getState().setArMode(true);
+    useStore.getState().setGamePrepared(true);
     useStore.getState().setOrientationPermission("granted");
     useStore.getState().setInstrumentalGaps([{ startTime: 10, endTime: 20 }]);
     useStore.getState().reset();
 
     assert.equal(useStore.getState().arMode, false);
+    assert.equal(useStore.getState().gamePrepared, false);
     assert.equal(useStore.getState().orientationPermission, "unknown");
     assert.deepEqual(useStore.getState().instrumentalGaps, []);
   });

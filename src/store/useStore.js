@@ -5,6 +5,7 @@ const MAX_GALLERY_DISPLAY = 12;
 export const useStore = create((set, get) => ({
   appStatus: 'intro',
   appStage: 'intro',
+  gamePrepared: false,
   score: 0,
   currentPhrase: null,
   currentBeat: null,
@@ -26,6 +27,7 @@ export const useStore = create((set, get) => ({
 
   setAppStatus: (status) => set({ appStatus: status }),
   setAppStage: (stage) => set({ appStage: stage }),
+  setGamePrepared: (prepared) => set({ gamePrepared: prepared }),
   setLanguage: (lang) => set({ language: lang }),
   incrementScore: (amount) => set((state) => ({ score: state.score + amount })),
   setScore: (score) => set({ score }),
@@ -69,6 +71,7 @@ export const useStore = create((set, get) => ({
   reset: () => set({
     appStatus: 'intro',
     appStage: 'intro',
+    gamePrepared: false,
     score: 0,
     currentPhrase: null,
     currentBeat: null,
