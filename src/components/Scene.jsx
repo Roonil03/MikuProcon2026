@@ -1,4 +1,4 @@
-import { useRef, useEffect, useMemo } from 'react';
+import { Suspense, useRef, useEffect, useMemo } from 'react';
 import { Canvas, useFrame, useThree, extend } from '@react-three/fiber';
 import { PerspectiveCamera, Text, shaderMaterial } from '@react-three/drei';
 import { EffectComposer, DepthOfField, ChromaticAberration, Bloom } from '@react-three/postprocessing';
@@ -305,10 +305,14 @@ const ScenePreparation = () => {
   useFrame(({ gl, scene, camera, invalidate }) => {
     if (started.current) return;
     let pendingText = false;
+    let textCount = 0;
     scene.traverse(object => {
-      if ('textRenderInfo' in object && !object.textRenderInfo) pendingText = true;
+      if ('textRenderInfo' in object) {
+        textCount++;
+        if (!object.textRenderInfo) pendingText = true;
+      }
     });
-    if (pendingText) return; // Text's onSync requests another demand frame.
+    if (pendingText || textCount === 0) return; // Text's onSync requests another demand frame.
     started.current = true;
     gl.compileAsync(scene, camera).catch(error => {
       // Shader preparation is optional; retain ordinary rendering as fallback.
@@ -329,11 +333,11 @@ const DynamicPostProcessing = ({ isMobileDevice }) => {
   const dofBokeh = useMemo(() => Math.max(0.15, 1.8 / shutterSpeed), [shutterSpeed]);
   const chromaOffset = useMemo(() => {
     const val = Math.min(0.01, 0.005 / shutterSpeed);
-    return [val, val];
+    return new THREE.Vector2(val, val);
   }, [shutterSpeed]);
 
   return (
-    <EffectComposer>
+    <EffectComposer multisampling={2}>
       {!isMobileDevice && (
         <DepthOfField
           focusDistance={0}
@@ -406,6 +410,22 @@ const performCapture = (camera, pointer) => {
 
 const HitDetectionLayer = () => {
   const { viewport, camera, gl } = useThree();
+  const arMode = useStore(state => state.arMode);
+
+  useEffect(() => {
+    const canvas = gl.domElement;
+    const handlePointer = event => {
+      if (gl.xr.isPresenting) return; // XR controller input still uses the plane.
+      const rect = canvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      performCapture(camera, {
+        x: (event.clientX - rect.left) / rect.width,
+        y: (event.clientY - rect.top) / rect.height,
+      });
+    };
+    canvas.addEventListener('pointerdown', handlePointer);
+    return () => canvas.removeEventListener('pointerdown', handlePointer);
+  }, [camera, gl]);
 
   const handlePointerDown = (event) => {
     const rect = gl.domElement.getBoundingClientRect();
@@ -416,6 +436,7 @@ const HitDetectionLayer = () => {
     performCapture(camera, pointer);
   };
 
+  if (!arMode) return null;
   return (
     <mesh position={[0, 0, 4.9]} onPointerDown={handlePointerDown}>
       <planeGeometry args={[viewport.width * 2, viewport.height * 2]} />
@@ -449,7 +470,9 @@ export const Scene = () => {
           <ambientLight intensity={0.5} />
           <directionalLight position={[10, 10, 10]} intensity={1.5} />
 
-          <LyricsCorridor />
+          <Suspense fallback={null}>
+            <LyricsCorridor />
+          </Suspense>
           <CharacterParticles />
           <HitDetectionLayer />
           
