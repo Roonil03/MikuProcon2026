@@ -13,6 +13,7 @@
     "asbuild:release": "asc assembly/index.ts --target release",
     "asbuild": "npm run asbuild:debug && npm run asbuild:release",
     "test": "node --test",
+    "test:browser": "node scripts/browser-smoke.mjs",
     "pretest": "npm run asbuild:release",
     "benchmark": "npm run build && node scripts/benchmark.mjs",
     "start": "npx serve ."
