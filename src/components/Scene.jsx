@@ -10,15 +10,15 @@ import { useStore } from '../store/useStore';
 import { ASSETS } from '../constants/assets';
 import characterData from '../lib/characterData.json';
 import { xrStore } from '../lib/xrStore';
+import { createCaptureEngine, lowerBound } from '../lib/captureEngine';
 
 // Asynchronously load the WebAssembly module
 import initWasm from '../../build/release.wasm?init';
-let wasmMemory = null;
-let wasmProcessCapture = null;
+let captureEngine = createCaptureEngine(null);
+const captureMatrix = new THREE.Matrix4();
 
-initWasm().then(instance => {
-  wasmMemory = instance.exports.memory;
-  wasmProcessCapture = instance.exports.processCapture;
+initWasm({ env: { abort() { throw new Error('WASM capture aborted'); } } }).then(instance => {
+  captureEngine = createCaptureEngine(instance.exports);
 }).catch(console.error);
 
 const SoundscapeMaterial = shaderMaterial(
@@ -144,16 +144,20 @@ extend({ SoundscapeMaterial });
 
 const SoundscapeCorridor = () => {
   const materialRef = useRef();
+  const intensity = useRef(0);
+  const lastBeat = useRef(null);
 
   useFrame((state, delta) => {
     if (!materialRef.current) return;
     materialRef.current.uTime += delta;
     
     const storeState = useStore.getState();
-    if (storeState.beatPulse > 0) {
-      storeState.decayBeat(delta * 2.5);
+    if (storeState.currentBeat !== lastBeat.current) {
+      lastBeat.current = storeState.currentBeat;
+      intensity.current = 1;
     }
-    materialRef.current.uIntensity = storeState.beatPulse;
+    intensity.current = Math.max(0, intensity.current - delta * 2.5);
+    materialRef.current.uIntensity = intensity.current;
     materialRef.current.uArMode = storeState.arMode ? 1.0 : 0.0;
   });
 
@@ -198,7 +202,7 @@ const CameraController = () => {
   }, []);
 
   /* eslint-disable react-hooks/immutability -- Three.js cameras are updated imperatively inside R3F's frame loop. */
-  useFrame(() => {
+  useFrame((state, delta) => {
     const { isMobile, cursorPosition, sweepOffset, orientationPermission } = useStore.getState();
 
     if (requiresGyroscopePermission.current && orientationPermission === 'granted') {
@@ -212,8 +216,10 @@ const CameraController = () => {
       targetRotation.current.y = nx * 0.4;
     }
 
-    camera.rotation.x = THREE.MathUtils.lerp(camera.rotation.x, targetRotation.current.x, 0.06);
-    camera.rotation.y = THREE.MathUtils.lerp(camera.rotation.y, targetRotation.current.y + sweepOffset.value, 0.06);
+    if (state.gl.xr.isPresenting) return;
+    const blend = 1 - Math.exp(-3.7 * delta);
+    camera.rotation.x = THREE.MathUtils.lerp(camera.rotation.x, targetRotation.current.x, blend);
+    camera.rotation.y = THREE.MathUtils.lerp(camera.rotation.y, targetRotation.current.y + sweepOffset.value, blend);
   });
   /* eslint-enable react-hooks/immutability */
 
@@ -284,11 +290,27 @@ const CharacterParticles = () => {
   const pointsRef = useRef();
   const gaps = useStore(state => state.instrumentalGaps);
   const currentGap = useRef(null);
-  const { positions, colors } = CHARACTER_PARTICLE_DATA;
+  const { positions, colors } = useMemo(() => ({
+    positions: CHARACTER_PARTICLE_DATA.positions.slice(),
+    colors: CHARACTER_PARTICLE_DATA.colors.slice(),
+  }), []);
+
+  useEffect(() => {
+    const unsubscribe = useStore.subscribe((state, previous) => {
+      if (state.isPaused === previous.isPaused && state.appStatus === previous.appStatus) return;
+      const paused = state.isPaused || state.appStatus !== 'playing';
+      for (const tween of gsap.getTweensOf([positions, colors])) tween.paused(paused);
+    });
+    return () => {
+      unsubscribe();
+      gsap.killTweensOf([positions, colors]);
+    };
+  }, [positions, colors]);
 
   useFrame(() => {
     if (!pointsRef.current) return;
-    const currentPosition = useStore.getState().currentPosition;
+    const { currentPosition, isPaused, appStatus } = useStore.getState();
+    if (isPaused || appStatus !== 'playing') return;
     const geo = pointsRef.current.geometry;
     const posAttr = geo.attributes.position;
     const colAttr = geo.attributes.color;
@@ -389,14 +411,14 @@ const CharacterParticles = () => {
 
 const LyricsCorridor = () => {
   const lyricsData = useStore(state => state.lyricsData);
-  const activeChunkIndex = useStore(state => Math.floor(state.currentPosition / 15000));
+  const activeChunkIndex = useStore(state => Math.floor(state.currentPosition / 2000));
+  const shutterSpeed = useStore(state => state.shutterSpeed);
 
   const activeLyrics = useMemo(() => {
-    // Sliding window: keep lyrics for current 15s chunk and the next 15s chunk mounted
-    const startTime = (activeChunkIndex - 1) * 15000;
-    const endTime = (activeChunkIndex + 2) * 15000; // 45 seconds total window
-    return lyricsData.filter(l => l.startTime >= startTime && l.startTime <= endTime);
-  }, [lyricsData, activeChunkIndex]);
+    const startTime = activeChunkIndex * 2000 - 1000;
+    const endTime = (activeChunkIndex + 1) * 2000 + 3000 / shutterSpeed;
+    return lyricsData.slice(lowerBound(lyricsData, startTime), lowerBound(lyricsData, endTime + 1));
+  }, [lyricsData, activeChunkIndex, shutterSpeed]);
 
   return (
     <group>
@@ -441,7 +463,7 @@ const DynamicPostProcessing = ({ isMobileDevice }) => {
   );
 };
 
-const performCapture = (camera) => {
+const performCapture = (camera, pointer) => {
   const {
     appStatus,
     isPaused,
@@ -451,89 +473,21 @@ const performCapture = (camera) => {
     captureLyric,
     incrementScore,
     isMobile,
-    cursorPosition,
     shutterSpeed,
     sweepOffset,
   } = useStore.getState();
 
   if (appStatus !== 'playing' || isPaused) return false;
 
-  let closestLyric = null;
-  let minDiff = Infinity;
-  const timeWindow = 300 / shutterSpeed;
-
-  const ndcX = cursorPosition.x * 2 - 1;
-  const ndcY = -(cursorPosition.y * 2 - 1);
-
-  // Use WebAssembly if available and memory is sufficient
-  if (wasmProcessCapture && wasmMemory && lyricsData.length * 16 + 64 <= wasmMemory.buffer.byteLength) {
-    const memFloat32 = new Float32Array(wasmMemory.buffer);
-    
-    if (!isMobile) {
-      camera.updateMatrixWorld();
-      const projMatrix = camera.projectionMatrix.clone();
-      projMatrix.multiply(camera.matrixWorldInverse);
-      projMatrix.toArray(memFloat32, 0); // write 16 floats
-    }
-
-    for (let i = 0; i < lyricsData.length; i++) {
-      const baseIdx = 16 + (i * 4);
-      memFloat32[baseIdx] = lyricsData[i].id;
-      memFloat32[baseIdx + 1] = lyricsData[i].startTime;
-      memFloat32[baseIdx + 2] = lyricsData[i].x;
-      memFloat32[baseIdx + 3] = lyricsData[i].y;
-    }
-
-    const closestLyricId = wasmProcessCapture(
-      0, // matrixPtr
-      16 * 4, // lyricsPtr
-      lyricsData.length,
-      currentPosition,
-      shutterSpeed,
-      ndcX,
-      ndcY,
-      isMobile ? 1 : 0
-    );
-
-    if (closestLyricId !== -1) {
-      closestLyric = lyricsData.find(l => l.id === closestLyricId);
-      if (closestLyric) {
-        minDiff = Math.abs(closestLyric.startTime - currentPosition);
-      }
-    }
-  } else {
-    // JavaScript Fallback
-    if (isMobile) {
-      lyricsData.forEach(lyric => {
-        const diff = Math.abs(lyric.startTime - currentPosition);
-        if (diff < minDiff && diff < timeWindow) {
-          minDiff = diff;
-          closestLyric = lyric;
-        }
-      });
-    } else {
-      lyricsData.forEach(lyric => {
-        const timeDiff = Math.abs(lyric.startTime - currentPosition);
-        if (timeDiff > timeWindow) return;
-
-        const visibleWindow = 3000 / shutterSpeed;
-        const timeUntilSung = lyric.startTime - currentPosition;
-        const zPos = (timeUntilSung / visibleWindow) * -100;
-
-        const worldPos = new THREE.Vector3(lyric.x, lyric.y, zPos);
-        worldPos.project(camera);
-
-        const dx = worldPos.x - ndcX;
-        const dy = worldPos.y - ndcY;
-        const screenDist = Math.sqrt(dx * dx + dy * dy);
-
-        if (screenDist < 0.25 && timeDiff < minDiff) {
-          minDiff = timeDiff;
-          closestLyric = lyric;
-        }
-      });
-    }
-  }
+  const ndcX = pointer.x * 2 - 1;
+  const ndcY = -(pointer.y * 2 - 1);
+  camera.updateMatrixWorld();
+  captureMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+  const capturedIds = new Set(capturedLyrics.map(lyric => lyric.id));
+  const closestId = captureEngine(lyricsData, capturedIds, currentPosition, shutterSpeed,
+    captureMatrix.elements, ndcX, ndcY, isMobile);
+  const closestLyric = lyricsData.find(lyric => lyric.id === closestId);
+  const minDiff = closestLyric ? Math.abs(closestLyric.startTime - currentPosition) : Infinity;
 
   if (closestLyric && !capturedLyrics.some(lyric => lyric.id === closestLyric.id)) {
     const audio = new Audio(ASSETS.SFX_CLICK);
@@ -558,10 +512,15 @@ const performCapture = (camera) => {
 };
 
 const HitDetectionLayer = () => {
-  const { viewport, camera } = useThree();
+  const { viewport, camera, gl } = useThree();
 
-  const handlePointerDown = () => {
-    performCapture(camera);
+  const handlePointerDown = (event) => {
+    const rect = gl.domElement.getBoundingClientRect();
+    const pointer = {
+      x: (event.clientX - rect.left) / rect.width,
+      y: (event.clientY - rect.top) / rect.height,
+    };
+    performCapture(camera, pointer);
   };
 
   return (
@@ -581,12 +540,15 @@ const maxDevicePixelRatio = useReducedEffects ? 1.25 : 1.5;
 
 export const Scene = () => {
   const arMode = useStore(state => state.arMode);
+  const isPaused = useStore(state => state.isPaused);
+  const appStatus = useStore(state => state.appStatus);
 
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1, backgroundColor: arMode ? 'transparent' : '#0a0a0f' }}>
       <Canvas
         dpr={[1, maxDevicePixelRatio]}
         gl={{ antialias: !useReducedEffects, powerPreference: 'high-performance' }}
+        frameloop={appStatus === 'playing' && !isPaused ? 'always' : 'demand'}
       >
         <XR store={xrStore}>
           <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={75} />

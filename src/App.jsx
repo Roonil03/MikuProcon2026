@@ -1,28 +1,24 @@
-import { Scene } from './components/Scene';
-import { HUD } from './components/HUD';
-import { ResultGallery } from './components/ResultGallery';
+import { lazy, Suspense } from 'react';
 import { IntroScreen } from './components/IntroScreen';
-import { PauseMenu } from './components/PauseMenu';
 import { useStore } from './store/useStore';
+import { loadGame } from './lib/loadGame';
+
+const Game = lazy(loadGame);
 
 function App() {
   const appStatus = useStore(state => state.appStatus);
   const appStage = useStore(state => state.appStage);
-  const isPaused = useStore(state => state.isPaused);
 
   const showIntro = appStage !== 'ready' || appStatus === 'intro';
-  const showGame = appStatus === 'playing' || appStatus === 'ready' || appStatus === 'loading' || appStatus === 'results';
+  const showGame = appStage === 'ready';
 
   return (
     <div className="app-shell" style={{ position: 'relative', overflow: 'hidden', background: '#000000', backgroundColor: '#000000', cursor: appStatus === 'playing' ? 'none' : 'auto' }}>
       {showIntro && <IntroScreen />}
-      {showGame && !showIntro && (
-        <>
-          <Scene />
-          <HUD />
-          {isPaused && <PauseMenu />}
-          {appStatus === 'results' && <ResultGallery />}
-        </>
+      {showGame && (
+        <Suspense fallback={null}>
+          <Game />
+        </Suspense>
       )}
     </div>
   );

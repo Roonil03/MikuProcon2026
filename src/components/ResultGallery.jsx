@@ -1,5 +1,4 @@
 import { useRef, useCallback } from 'react';
-import html2canvas from 'html2canvas';
 import { useStore } from '../store/useStore';
 
 const WARM_GOLD = 'rgba(230, 199, 137, 1)';
@@ -74,6 +73,7 @@ export const ResultGallery = () => {
   const handleDownload = useCallback(async () => {
     if (!galleryRef.current) return;
     try {
+      const { default: html2canvas } = await import('html2canvas');
       const canvas = await html2canvas(galleryRef.current, {
         backgroundColor: '#0a0a0f',
         scale: 2,

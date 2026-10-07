@@ -7,6 +7,12 @@ beforeEach(() => {
 });
 
 describe("game store", () => {
+  it("sorts incoming lyrics without changing the supplied data", () => {
+    const lyrics = [{ id: 1, startTime: 200 }, { id: 0, startTime: 100 }];
+    useStore.getState().setLyricsData(lyrics);
+    assert.deepEqual(useStore.getState().lyricsData.map(lyric => lyric.id), [0, 1]);
+    assert.deepEqual(lyrics.map(lyric => lyric.id), [1, 0]);
+  });
   it("captures each lyric only once", () => {
     useStore.getState().setLyricsData([{ id: 7, text: "ミ", startTime: 1000 }]);
 

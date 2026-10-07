@@ -32,7 +32,7 @@ export const useStore = create((set, get) => ({
   setCurrentPhrase: (phrase) => set({ currentPhrase: phrase }),
   setCurrentBeat: (beat) => set({ currentBeat: beat }),
   setPlayer: (player) => set({ player }),
-  setLyricsData: (data) => set({ lyricsData: data }),
+  setLyricsData: (data) => set({ lyricsData: [...data].sort((a, b) => a.startTime - b.startTime) }),
   setInstrumentalGaps: (gaps) => set({ instrumentalGaps: gaps }),
   setCurrentPosition: (position) => set({ currentPosition: position }),
   setShutterSpeed: (speed) => set({ shutterSpeed: Math.max(0.1, Math.min(3.0, speed)) }),

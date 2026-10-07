@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "predev": "npm run asbuild:release",
     "build": "npm run asbuild && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -12,6 +13,8 @@
     "asbuild:release": "asc assembly/index.ts --target release",
     "asbuild": "npm run asbuild:debug && npm run asbuild:release",
     "test": "node --test",
+    "pretest": "npm run asbuild:release",
+    "benchmark": "npm run build && node scripts/benchmark.mjs",
     "start": "npx serve ."
   },
   "dependencies": {
