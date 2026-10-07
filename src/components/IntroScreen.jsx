@@ -6,6 +6,7 @@ import { useStore } from '../store/useStore';
 import { ASSETS } from '../constants/assets';
 import { generateMikuSilhouette } from '../lib/mikuSilhouette';
 import { initializeTextAlive } from '../lib/TextAliveManager';
+import { loadGame } from '../lib/loadGame';
 
 const WARM_GOLD = 'rgba(230, 199, 137, 1)';
 const COOL_BLUE = 'rgba(143, 199, 234, 1)';
@@ -184,14 +185,17 @@ export const IntroScreen = () => {
     const audio = new Audio(ASSETS.SFX_CLICK);
     audio.play().catch(() => {});
 
-    useStore.getState().setAppStage('forming');
-
     if (!particlesRef.current) return;
 
     const geometry = particlesRef.current.getGeometry();
     const targetPositions = particlesRef.current.getTargetPositions();
     const group = particlesRef.current.getGroup();
     if (!geometry || !targetPositions) return;
+
+    useStore.getState().setAppStage('forming');
+    // Load the track and game code while the four-second formation runs.
+    loadGame().catch(console.error);
+    if (!useStore.getState().player) initializeTextAlive();
 
     const posAttr = geometry.getAttribute('position');
     const currentArray = posAttr.array;

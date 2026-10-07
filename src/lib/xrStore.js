@@ -1,3 +1,3 @@
 import { createXRStore } from '@react-three/xr';
 
-export const xrStore = createXRStore();
+export const xrStore = createXRStore({ emulate: false, offerSession: false });

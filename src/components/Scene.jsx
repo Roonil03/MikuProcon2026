@@ -10,14 +10,14 @@ import { useStore } from '../store/useStore';
 import { ASSETS } from '../constants/assets';
 import characterData from '../lib/characterData.json';
 import { xrStore } from '../lib/xrStore';
-import { createCaptureEngine } from '../lib/captureEngine';
+import { createCaptureEngine, lowerBound } from '../lib/captureEngine';
 
 // Asynchronously load the WebAssembly module
 import initWasm from '../../build/release.wasm?init';
 let captureEngine = createCaptureEngine(null);
 const captureMatrix = new THREE.Matrix4();
 
-initWasm().then(instance => {
+initWasm({ env: { abort() { throw new Error('WASM capture aborted'); } } }).then(instance => {
   captureEngine = createCaptureEngine(instance.exports);
 }).catch(console.error);
 
@@ -144,16 +144,20 @@ extend({ SoundscapeMaterial });
 
 const SoundscapeCorridor = () => {
   const materialRef = useRef();
+  const intensity = useRef(0);
+  const lastBeat = useRef(null);
 
   useFrame((state, delta) => {
     if (!materialRef.current) return;
     materialRef.current.uTime += delta;
     
     const storeState = useStore.getState();
-    if (storeState.beatPulse > 0) {
-      storeState.decayBeat(delta * 2.5);
+    if (storeState.currentBeat !== lastBeat.current) {
+      lastBeat.current = storeState.currentBeat;
+      intensity.current = 1;
     }
-    materialRef.current.uIntensity = storeState.beatPulse;
+    intensity.current = Math.max(0, intensity.current - delta * 2.5);
+    materialRef.current.uIntensity = intensity.current;
     materialRef.current.uArMode = storeState.arMode ? 1.0 : 0.0;
   });
 
@@ -198,7 +202,7 @@ const CameraController = () => {
   }, []);
 
   /* eslint-disable react-hooks/immutability -- Three.js cameras are updated imperatively inside R3F's frame loop. */
-  useFrame(() => {
+  useFrame((state, delta) => {
     const { isMobile, cursorPosition, sweepOffset, orientationPermission } = useStore.getState();
 
     if (requiresGyroscopePermission.current && orientationPermission === 'granted') {
@@ -212,8 +216,10 @@ const CameraController = () => {
       targetRotation.current.y = nx * 0.4;
     }
 
-    camera.rotation.x = THREE.MathUtils.lerp(camera.rotation.x, targetRotation.current.x, 0.06);
-    camera.rotation.y = THREE.MathUtils.lerp(camera.rotation.y, targetRotation.current.y + sweepOffset.value, 0.06);
+    if (state.gl.xr.isPresenting) return;
+    const blend = 1 - Math.exp(-3.7 * delta);
+    camera.rotation.x = THREE.MathUtils.lerp(camera.rotation.x, targetRotation.current.x, blend);
+    camera.rotation.y = THREE.MathUtils.lerp(camera.rotation.y, targetRotation.current.y + sweepOffset.value, blend);
   });
   /* eslint-enable react-hooks/immutability */
 
@@ -389,14 +395,14 @@ const CharacterParticles = () => {
 
 const LyricsCorridor = () => {
   const lyricsData = useStore(state => state.lyricsData);
-  const activeChunkIndex = useStore(state => Math.floor(state.currentPosition / 15000));
+  const activeChunkIndex = useStore(state => Math.floor(state.currentPosition / 2000));
+  const shutterSpeed = useStore(state => state.shutterSpeed);
 
   const activeLyrics = useMemo(() => {
-    // Sliding window: keep lyrics for current 15s chunk and the next 15s chunk mounted
-    const startTime = (activeChunkIndex - 1) * 15000;
-    const endTime = (activeChunkIndex + 2) * 15000; // 45 seconds total window
-    return lyricsData.filter(l => l.startTime >= startTime && l.startTime <= endTime);
-  }, [lyricsData, activeChunkIndex]);
+    const startTime = activeChunkIndex * 2000 - 1000;
+    const endTime = (activeChunkIndex + 1) * 2000 + 3000 / shutterSpeed;
+    return lyricsData.slice(lowerBound(lyricsData, startTime), lowerBound(lyricsData, endTime + 1));
+  }, [lyricsData, activeChunkIndex, shutterSpeed]);
 
   return (
     <group>
@@ -514,12 +520,15 @@ const maxDevicePixelRatio = useReducedEffects ? 1.25 : 1.5;
 
 export const Scene = () => {
   const arMode = useStore(state => state.arMode);
+  const isPaused = useStore(state => state.isPaused);
+  const appStatus = useStore(state => state.appStatus);
 
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1, backgroundColor: arMode ? 'transparent' : '#0a0a0f' }}>
       <Canvas
         dpr={[1, maxDevicePixelRatio]}
         gl={{ antialias: !useReducedEffects, powerPreference: 'high-performance' }}
+        frameloop={appStatus === 'playing' && !isPaused ? 'always' : 'demand'}
       >
         <XR store={xrStore}>
           <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={75} />

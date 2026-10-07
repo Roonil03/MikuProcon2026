@@ -2,6 +2,8 @@ import { Player } from 'textalive-app-api';
 import { useStore } from '../store/useStore';
 
 export const initializeTextAlive = () => {
+  const existingPlayer = useStore.getState().player;
+  if (existingPlayer) return existingPlayer;
   const mediaContainer = document.createElement('div');
   mediaContainer.id = "media-container";
   mediaContainer.style.display = "none";
@@ -64,7 +66,7 @@ export const initializeTextAlive = () => {
       const b = player.findBeat(position);
       if (b && (!lastBeat || b.startTime !== lastBeat.startTime)) {
         lastBeat = b;
-        useStore.getState().triggerBeat();
+        useStore.getState().setCurrentBeat(b.startTime);
       }
 
       const state = useStore.getState();
