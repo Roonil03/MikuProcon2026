@@ -1,3 +1,11 @@
+// Keep the buffer alive and return its data address, never write over runtime memory.
+let captureBuffer: ArrayBuffer = new ArrayBuffer(64);
+
+export function reserveCaptureBuffer(capacity: i32): usize {
+  captureBuffer = new ArrayBuffer(64 + capacity * 16);
+  return changetype<usize>(captureBuffer);
+}
+
 export function processCapture(
   matrixPtr: usize,
   lyricsPtr: usize,
@@ -59,16 +67,13 @@ export function processCapture(
       let projY = x * m1 + y * m5 + zPos * m9  + m13;
       let projW = x * m3 + y * m7 + zPos * m11 + m15;
 
-      if (projW != 0.0) {
-        projX /= projW;
-        projY /= projW;
-      }
+      if (projW <= 0.0) continue;
+      projX /= projW;
+      projY /= projW;
 
       let dx = projX - ndcX;
       let dy = projY - ndcY;
-      let screenDist = Mathf.sqrt(dx * dx + dy * dy);
-
-      if (screenDist < 0.25 && timeDiff < minDiff) {
+      if (dx * dx + dy * dy < 0.0625 && timeDiff < minDiff) {
         minDiff = timeDiff;
         closestLyricId = id;
       }
