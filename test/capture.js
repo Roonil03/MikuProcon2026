@@ -42,3 +42,20 @@ for (const [index, capture] of engines.entries()) {
     assert.equal(capture(lyrics, new Set([0, 1]), 1500, 1, matrix, 0, 0, true), 2);
   });
 }
+
+it('WASM and JavaScript agree over desktop and mobile aims and shutter speeds', () => {
+  const lyrics = Array.from({ length: 300 }, (_, id) => ({
+    id, startTime: id * 100, x: (id % 5 - 2) * 0.2, y: (id % 7 - 3) * 0.1,
+  }));
+  for (const speed of [0.1, 1, 3]) {
+    for (const mobile of [false, true]) {
+      for (let i = 0; i < 200; i++) {
+        const position = i * 137;
+        const aimX = (i % 3 - 1) * 0.1;
+        const aimY = (i % 5 - 2) * 0.1;
+        const args = [lyrics, new Set([i % 300]), position, speed, matrix, aimX, aimY, mobile];
+        assert.equal(engines[1](...args), engines[0](...args));
+      }
+    }
+  }
+});
