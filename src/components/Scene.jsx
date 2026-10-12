@@ -416,6 +416,7 @@ const HitDetectionLayer = () => {
     const canvas = gl.domElement;
     const handlePointer = event => {
       if (gl.xr.isPresenting) return; // XR controller input still uses the plane.
+      if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
       const rect = canvas.getBoundingClientRect();
       if (!rect.width || !rect.height) return;
       performCapture(camera, {
