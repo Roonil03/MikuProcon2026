@@ -1,4 +1,4 @@
-import { Suspense, useRef, useEffect, useMemo } from 'react';
+import { memo, Suspense, useRef, useEffect, useMemo } from 'react';
 import { Canvas, useFrame, useThree, extend } from '@react-three/fiber';
 import { PerspectiveCamera, Text, shaderMaterial } from '@react-three/drei';
 import { EffectComposer, DepthOfField, ChromaticAberration, Bloom } from '@react-three/postprocessing';
@@ -226,7 +226,7 @@ const CameraController = () => {
   return null;
 };
 
-const LyricMesh = ({ lyric, characters, textRefs }) => {
+const LyricMesh = memo(({ lyric, characters, textRefs }) => {
   return (
     <Text
       ref={object => {
@@ -245,7 +245,7 @@ const LyricMesh = ({ lyric, characters, textRefs }) => {
       {lyric.text}
     </Text>
   );
-};
+});
 
 const LyricsCorridor = () => {
   const textRefs = useRef(new Map());
