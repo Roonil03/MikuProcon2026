@@ -1,4 +1,4 @@
-import { Suspense, useRef, useEffect, useMemo } from 'react';
+import { memo, Suspense, useRef, useEffect, useMemo } from 'react';
 import { Canvas, useFrame, useThree, extend } from '@react-three/fiber';
 import { PerspectiveCamera, Text, shaderMaterial } from '@react-three/drei';
 import { EffectComposer, DepthOfField, ChromaticAberration, Bloom } from '@react-three/postprocessing';
@@ -226,37 +226,13 @@ const CameraController = () => {
   return null;
 };
 
-const LyricMesh = ({ lyric, characters }) => {
-  const textRef = useRef();
-
-  useFrame(() => {
-    const { currentPosition, shutterSpeed } = useStore.getState();
-    const timeUntilSung = lyric.startTime - currentPosition;
-    const visibleWindow = 3000 / shutterSpeed;
-
-    if (timeUntilSung > visibleWindow || timeUntilSung < -1000) {
-      if (textRef.current) textRef.current.visible = false;
-      return;
-    }
-
-    if (textRef.current) {
-      textRef.current.visible = true;
-      const zPos = (timeUntilSung / visibleWindow) * -100;
-      textRef.current.position.set(lyric.x, lyric.y, zPos);
-
-      let opacity = 1;
-      if (timeUntilSung > visibleWindow * 0.85) {
-        opacity = (visibleWindow - timeUntilSung) / (visibleWindow * 0.15);
-      } else if (timeUntilSung < 0) {
-        opacity = 1 - (Math.abs(timeUntilSung) / 1000);
-      }
-      textRef.current.fillOpacity = Math.max(0, opacity);
-    }
-  });
-
+const LyricMesh = memo(({ lyric, characters, textRefs }) => {
   return (
     <Text
-      ref={textRef}
+      ref={object => {
+        if (object) textRefs.current.set(lyric.id, object);
+        else textRefs.current.delete(lyric.id);
+      }}
       position={[lyric.x, lyric.y, -100]}
       fontSize={2}
       color="white"
@@ -269,9 +245,10 @@ const LyricMesh = ({ lyric, characters }) => {
       {lyric.text}
     </Text>
   );
-};
+});
 
 const LyricsCorridor = () => {
+  const textRefs = useRef(new Map());
   const lyricsData = useStore(state => state.lyricsData);
   const activeChunkIndex = useStore(state => Math.floor(state.currentPosition / 2000));
   const shutterSpeed = useStore(state => state.shutterSpeed);
@@ -286,10 +263,37 @@ const LyricsCorridor = () => {
     return lyrics.length || activeChunkIndex !== 0 ? lyrics : lyricsData.slice(0, 1);
   }, [lyricsData, activeChunkIndex, shutterSpeed]);
 
+  useFrame(() => {
+    const { currentPosition, shutterSpeed: currentShutterSpeed } = useStore.getState();
+    const visibleWindow = 3000 / currentShutterSpeed;
+
+    for (const lyric of activeLyrics) {
+      const text = textRefs.current.get(lyric.id);
+      if (!text) continue;
+
+      const timeUntilSung = lyric.startTime - currentPosition;
+      if (timeUntilSung > visibleWindow || timeUntilSung < -1000) {
+        text.visible = false;
+        continue;
+      }
+
+      text.visible = true;
+      text.position.set(lyric.x, lyric.y, (timeUntilSung / visibleWindow) * -100);
+
+      let opacity = 1;
+      if (timeUntilSung > visibleWindow * 0.85) {
+        opacity = (visibleWindow - timeUntilSung) / (visibleWindow * 0.15);
+      } else if (timeUntilSung < 0) {
+        opacity = 1 - (Math.abs(timeUntilSung) / 1000);
+      }
+      text.fillOpacity = Math.max(0, opacity);
+    }
+  });
+
   return (
     <group>
       {activeLyrics.map((lyric) => (
-        <LyricMesh key={lyric.id} lyric={lyric} characters={characters} />
+        <LyricMesh key={lyric.id} lyric={lyric} characters={characters} textRefs={textRefs} />
       ))}
     </group>
   );
