@@ -30,6 +30,9 @@ const TEXT_EN = {
   disclaimer: 'Note: The Japanese translations have been produced using translation software and may not be perfectly accurate. Apologies for any errors.',
   loadingTrack: 'LOADING TRACK...',
   trackReady: 'TRACK READY',
+  trackUnavailable: 'LYRIC TIMING UNAVAILABLE',
+  trackUnavailableMessage: 'Synced lyrics could not be loaded. Check your connection and retry.',
+  retry: 'Retry',
   forming: 'FORMING...',
 };
 
@@ -49,6 +52,9 @@ const TEXT_JA = {
   disclaimer: '\u6CE8\u610F\uFF1A\u65E5\u672C\u8A9E\u306E\u7FFB\u8A33\u306F\u7FFB\u8A33\u30BD\u30D5\u30C8\u30A6\u30A7\u30A2\u3092\u4F7F\u7528\u3057\u3066\u304A\u308A\u3001\u5B8C\u5168\u306B\u6B63\u78BA\u3067\u306F\u306A\u3044\u5834\u5408\u304C\u3042\u308A\u307E\u3059\u3002\u8AA4\u308A\u304C\u3042\u308C\u3070\u304A\u8A6B\u3073\u7533\u3057\u4E0A\u3052\u307E\u3059\u3002',
   loadingTrack: '\u30C8\u30E9\u30C3\u30AF\u8AAD\u307F\u8FBC\u307F\u4E2D...',
   trackReady: '\u30C8\u30E9\u30C3\u30AF\u6E96\u5099\u5B8C\u4E86',
+  trackUnavailable: '\u6B4C\u8A5E\u30BF\u30A4\u30DF\u30F3\u30B0\u60C5\u5831\u3092\u53D6\u5F97\u3067\u304D\u307E\u305B\u3093',
+  trackUnavailableMessage: '\u540C\u671F\u6B4C\u8A5E\u3092\u8AAD\u307F\u8FBC\u3081\u307E\u305B\u3093\u3067\u3057\u305F\u3002\u63A5\u7D9A\u3092\u78BA\u8A8D\u3057\u3066\u518D\u8A66\u884C\u3057\u3066\u304F\u3060\u3055\u3044\u3002',
+  retry: '\u518D\u8A66\u884C',
   forming: '\u5F62\u6210\u4E2D...',
 };
 
@@ -227,16 +233,11 @@ export const IntroScreen = () => {
         }
       },
       onComplete: () => {
-        useStore.getState().setAppStage('loading_track');
+        useStore.getState().completeIntroFormation();
 
         const existingPlayer = useStore.getState().player;
         if (!existingPlayer) {
           initializeTextAlive();
-        }
-
-        const lyricsAlreadyLoaded = useStore.getState().lyricsData.length > 0;
-        if (lyricsAlreadyLoaded) {
-          useStore.getState().setAppStage('ready');
         }
       },
     });
@@ -318,7 +319,8 @@ export const IntroScreen = () => {
 
   const showBeginButton = appStage === 'intro';
   const showStartButton = appStage === 'ready';
-  const showOverlay = appStage === 'intro' || appStage === 'forming';
+  const showTrackUnavailable = appStage === 'track_unavailable';
+  const showOverlay = appStage === 'intro' || appStage === 'forming' || showTrackUnavailable;
 
   return (
     <div style={{
@@ -397,11 +399,11 @@ export const IntroScreen = () => {
         fontFamily: '"Press Start 2P", sans-serif',
         fontSize: '0.6rem',
         letterSpacing: '2px',
-        color: appStage === 'ready' ? 'rgba(143,199,234,0.6)' : 'rgba(230,199,137,0.4)',
+        color: showTrackUnavailable ? '#e89090' : (appStage === 'ready' ? 'rgba(143,199,234,0.6)' : 'rgba(230,199,137,0.4)'),
         transition: 'color 0.5s ease',
         zIndex: 10,
       }}>
-        {appStage === 'ready' ? t.trackReady : (appStage === 'loading_track' ? t.loadingTrack : (appStage === 'forming' ? t.forming : 'PRELOADING...'))}
+        {showTrackUnavailable ? t.trackUnavailable : (appStage === 'ready' ? t.trackReady : (appStage === 'loading_track' ? t.loadingTrack : (appStage === 'forming' ? t.forming : 'PRELOADING...')))}
       </div>
 
       <div className="intro-viewport">
@@ -575,6 +577,27 @@ export const IntroScreen = () => {
               }}>
                 {isMobile ? t.gyroscope : t.cursor} {t.detected}
               </div>
+            </div>
+          )}
+
+          {showTrackUnavailable && (
+            <div style={{ marginTop: '28px', color: '#e89090', fontFamily: bodyFont }}>
+              <p>{t.trackUnavailableMessage}</p>
+              <button
+                onClick={() => window.location.reload()}
+                style={{
+                  marginTop: '12px',
+                  padding: '12px 36px',
+                  fontSize: language === 'ja' ? '0.85rem' : '1rem',
+                  fontFamily: bodyFont,
+                  background: 'transparent',
+                  color: WARM_GOLD,
+                  border: `1px solid ${WARM_GOLD_HALF}`,
+                  cursor: 'pointer',
+                }}
+              >
+                {t.retry}
+              </button>
             </div>
           )}
         </div>
