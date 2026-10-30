@@ -15,7 +15,9 @@ pnpm-debug.log*
 coverage/
 test-results/
 /test/
-/scripts/browser-smoke.mjs
+**/*.test.js
+**/*.spec.js
+**/__tests__/**
 .DS_Store
 **/miku.webp
 **/*.kra*
