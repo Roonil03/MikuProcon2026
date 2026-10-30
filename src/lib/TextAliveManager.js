@@ -54,11 +54,7 @@ export const initializeTextAlive = () => {
         phrase = phrase.next;
       }
       useStore.getState().setInstrumentalGaps(gaps);
-
-      const currentStage = useStore.getState().appStage;
-      if (currentStage === 'loading_track') {
-        useStore.getState().setAppStage('ready');
-      }
+      useStore.getState().markTrackReady();
     },
     onTimeUpdate: (position) => {
       useStore.getState().setCurrentPosition(position);

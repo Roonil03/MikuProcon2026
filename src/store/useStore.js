@@ -6,6 +6,7 @@ export const useStore = create((set, get) => ({
   appStatus: 'intro',
   appStage: 'intro',
   gamePrepared: false,
+  trackReady: false,
   score: 0,
   currentPhrase: null,
   currentBeat: null,
@@ -28,6 +29,21 @@ export const useStore = create((set, get) => ({
   setAppStatus: (status) => set({ appStatus: status }),
   setAppStage: (stage) => set({ appStage: stage }),
   setGamePrepared: (prepared) => set({ gamePrepared: prepared }),
+  markTrackReady: () => {
+    const state = get();
+    const appStage = state.appStage === 'loading_track'
+      ? (state.lyricsData.length > 0 ? 'ready' : 'track_unavailable')
+      : state.appStage;
+    set({ trackReady: true, appStage });
+  },
+  completeIntroFormation: () => {
+    const state = get();
+    set({
+      appStage: !state.trackReady
+        ? 'loading_track'
+        : (state.lyricsData.length > 0 ? 'ready' : 'track_unavailable'),
+    });
+  },
   setLanguage: (lang) => set({ language: lang }),
   incrementScore: (amount) => set((state) => ({ score: state.score + amount })),
   setScore: (score) => set({ score }),
@@ -83,6 +99,7 @@ export const useStore = create((set, get) => ({
     appStatus: 'intro',
     appStage: 'intro',
     gamePrepared: false,
+    trackReady: false,
     score: 0,
     currentPhrase: null,
     currentBeat: null,
