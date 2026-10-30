@@ -22,7 +22,17 @@ export const initializeTextAlive = () => {
   player.addListener({
     onAppReady: (app) => {
       if (app.managed) return;
-      player.createFromSongUrl("https://piapro.jp/t/PNpQ/20251209170719");
+      player.createFromSongUrl("https://piapro.jp/t/PNpQ/20251209170719", {
+        video: {
+          // Pin the official Magical Mirai 2026 song and lyric timing revisions.
+          // https://developer.textalive.jp/events/magicalmirai2026/
+          beatId: 4827295,
+          chordId: 2963756,
+          repetitiveSegmentId: 3086263,
+          lyricId: 126542,
+          lyricDiffId: 28628,
+        },
+      });
     },
     onVideoReady: () => {
       const lyrics = [];
@@ -54,11 +64,7 @@ export const initializeTextAlive = () => {
         phrase = phrase.next;
       }
       useStore.getState().setInstrumentalGaps(gaps);
-
-      const currentStage = useStore.getState().appStage;
-      if (currentStage === 'loading_track') {
-        useStore.getState().setAppStage('ready');
-      }
+      useStore.getState().markTrackReady();
     },
     onTimeUpdate: (position) => {
       useStore.getState().setCurrentPosition(position);
