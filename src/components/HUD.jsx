@@ -57,8 +57,7 @@ export const HUD = () => {
   const handleStart = () => {
     const player = useStore.getState().player;
     if (player && appStatus === 'ready') {
-      player.requestPlay();
-      useStore.getState().setAppStatus('playing');
+      useStore.getState().startPlayback();
     }
   };
 
