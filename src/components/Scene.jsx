@@ -14,7 +14,7 @@ import { xrStore } from '../lib/xrStore';
 import { attachXRSelect } from '../lib/xrInput';
 import { createCaptureEngine, lowerBound } from '../lib/captureEngine';
 import { usePrimaryTouch } from '../lib/inputCapabilities';
-import { canUseOrientation, hasRecentOrientation, readOrientation } from '../lib/orientationInput';
+import { canUseOrientation, hasRecentOrientation, readOrientation, readPointerRotation } from '../lib/orientationInput';
 
 // Asynchronously load the WebAssembly module
 import initWasm from '../../build/release.wasm?init';
@@ -178,6 +178,7 @@ const CameraController = () => {
   const targetRotation = useRef({ x: 0, y: 0 });
   const isMobile = usePrimaryTouch();
   const lastOrientation = useRef(-Infinity);
+  const lastCursorPosition = useRef(null);
   const requiresGyroscopePermission = useRef(false);
 
   useEffect(() => {
@@ -192,6 +193,7 @@ const CameraController = () => {
         const rotation = readOrientation(event);
         if (!rotation) return;
         targetRotation.current = rotation;
+        lastCursorPosition.current = useStore.getState().cursorPosition;
         lastOrientation.current = performance.now();
       };
 
@@ -213,12 +215,9 @@ const CameraController = () => {
       lastOrientation.current, performance.now());
     storeState.setOrientationActive(hasGyroscope);
 
-    if (!hasGyroscope) {
-      const nx = cursorPosition.x * 2 - 1;
-      const ny = cursorPosition.y * 2 - 1;
-      targetRotation.current.x = -ny * 0.4;
-      targetRotation.current.y = nx * 0.4;
-    }
+    const pointerRotation = readPointerRotation(cursorPosition, lastCursorPosition.current, hasGyroscope);
+    lastCursorPosition.current = cursorPosition;
+    if (pointerRotation) targetRotation.current = pointerRotation;
 
     if (state.gl.xr.isPresenting) return;
     const blend = 1 - Math.exp(-3.7 * delta);

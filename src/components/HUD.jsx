@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useStore, MAX_GALLERY_DISPLAY } from '../store/useStore';
 import { playHoverSound } from '../lib/soundEffects';
 import { attachCursorInput } from '../lib/cursorInput';
@@ -18,10 +18,17 @@ export const HUD = () => {
   const orientationActive = useStore(state => state.orientationActive);
   const language = useStore(state => state.language);
   const crosshairRef = useRef(null);
+  const [arSupported, setArSupported] = useState(false);
 
   const bodyFont = language === 'ja'
     ? '"Shizuru", system-ui'
     : '"Kranky", sans-serif';
+
+  useEffect(() => {
+    let mounted = true;
+    canOfferAR().then(supported => { if (mounted) setArSupported(supported); });
+    return () => { mounted = false; };
+  }, []);
 
   useEffect(() => {
     return attachCursorInput(window, useStore.getState, (x, y) => {
@@ -92,7 +99,7 @@ export const HUD = () => {
         {appStatus === 'playing' && (
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
             {/* AR remains available when a tablet's primary pointer is a trackpad. */}
-            {(isMobile || arMode || canOfferAR()) && (
+            {(arMode || arSupported) && (
               <button
                 style={{
                   padding: '8px 16px',

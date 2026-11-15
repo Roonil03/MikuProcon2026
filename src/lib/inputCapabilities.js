@@ -32,7 +32,10 @@ export function usePrimaryTouch() {
   return useSyncExternalStore(subscribePrimaryPointer, hasPrimaryTouch, () => false);
 }
 
-export function canOfferAR(target = globalThis.window) {
-  // A trackpad or mouse must not hide AR on a touch-capable tablet/headset.
-  return Boolean(target?.navigator?.xr || (target?.navigator?.maxTouchPoints || 0) > 0);
+export async function canOfferAR(target = globalThis.window) {
+  try {
+    return await target?.navigator?.xr?.isSessionSupported?.('immersive-ar') === true;
+  } catch {
+    return false;
+  }
 }
