@@ -7,9 +7,11 @@ import { XR } from '@react-three/xr';
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { useStore } from '../store/useStore';
-import { ASSETS } from '../constants/assets';
+import { getCapturedIds, getLyricIndex } from '../lib/captureLookup';
+import { playShutterSound } from '../lib/soundEffects';
 import { CharacterParticles } from './CharacterParticles';
 import { xrStore } from '../lib/xrStore';
+import { attachXRSelect } from '../lib/xrInput';
 import { createCaptureEngine, lowerBound } from '../lib/captureEngine';
 
 // Asynchronously load the WebAssembly module
@@ -372,7 +374,6 @@ const performCapture = (camera, pointer) => {
     lyricsData,
     capturedLyrics,
     captureLyric,
-    incrementScore,
     isMobile,
     shutterSpeed,
     sweepOffset,
@@ -384,19 +385,16 @@ const performCapture = (camera, pointer) => {
   const ndcY = -(pointer.y * 2 - 1);
   camera.updateMatrixWorld();
   captureMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-  const capturedIds = new Set(capturedLyrics.map(lyric => lyric.id));
+  const capturedIds = getCapturedIds(capturedLyrics);
   const closestId = captureEngine(lyricsData, capturedIds, currentPosition, shutterSpeed,
     captureMatrix.elements, ndcX, ndcY, isMobile);
-  const closestLyric = lyricsData.find(lyric => lyric.id === closestId);
+  const closestLyric = closestId === -1 ? null : getLyricIndex(lyricsData).get(closestId);
   const minDiff = closestLyric ? Math.abs(closestLyric.startTime - currentPosition) : Infinity;
 
-  if (closestLyric && !capturedLyrics.some(lyric => lyric.id === closestLyric.id)) {
-    const audio = new Audio(ASSETS.SFX_CLICK);
-    audio.play().catch(() => {});
-
+  if (closestLyric) {
     const scoreDelta = Math.max(0, 100 - minDiff);
-    incrementScore(Math.floor(scoreDelta));
-    captureLyric(closestLyric.id);
+    if (!captureLyric(closestLyric.id, Math.floor(scoreDelta))) return false;
+    playShutterSound();
 
     if (scoreDelta > 90) {
       gsap.killTweensOf(sweepOffset);
@@ -413,13 +411,12 @@ const performCapture = (camera, pointer) => {
 };
 
 const HitDetectionLayer = () => {
-  const { viewport, camera, gl } = useThree();
-  const arMode = useStore(state => state.arMode);
+  const { camera, gl } = useThree();
 
   useEffect(() => {
     const canvas = gl.domElement;
     const handlePointer = event => {
-      if (gl.xr.isPresenting) return; // XR controller input still uses the plane.
+      if (gl.xr.isPresenting) return; // XR selection uses its session listener.
       if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
       const rect = canvas.getBoundingClientRect();
       if (!rect.width || !rect.height) return;
@@ -432,22 +429,13 @@ const HitDetectionLayer = () => {
     return () => canvas.removeEventListener('pointerdown', handlePointer);
   }, [camera, gl]);
 
-  const handlePointerDown = (event) => {
-    const rect = gl.domElement.getBoundingClientRect();
-    const pointer = {
-      x: (event.clientX - rect.left) / rect.width,
-      y: (event.clientY - rect.top) / rect.height,
-    };
-    performCapture(camera, pointer);
-  };
+  useEffect(() => {
+    // XR selection has no client coordinates. Listen to the session itself so
+    // moving the viewer never leaves a fixed, invisible input plane behind.
+    return attachXRSelect(xrStore, () => performCapture(camera, { x: 0.5, y: 0.5 }));
+  }, [camera]);
 
-  if (!arMode) return null;
-  return (
-    <mesh position={[0, 0, 4.9]} onPointerDown={handlePointerDown}>
-      <planeGeometry args={[viewport.width * 2, viewport.height * 2]} />
-      <meshBasicMaterial transparent opacity={0} depthWrite={false} />
-    </mesh>
-  );
+  return null;
 };
 
 const isTouchDevice = typeof window !== 'undefined'
