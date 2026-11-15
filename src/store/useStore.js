@@ -1,12 +1,26 @@
 import { create } from 'zustand';
+import { getCapturedIds, getLyricIndex } from '../lib/captureLookup.js';
 
 const MAX_GALLERY_DISPLAY = 12;
+
+const withPreparedPlayback = (state, changes) => {
+  const next = { ...state, ...changes };
+  // A managed host may start before formation or scene preparation finishes.
+  // Read the current SDK state so an intervening pause/stop is respected too.
+  if (next.appStage === 'ready' && next.gamePrepared && next.appStatus === 'intro' && next.player?.isPlaying) {
+    return { ...changes, appStatus: 'playing', isPaused: false, playbackPending: false, playbackError: false };
+  }
+  return changes;
+};
 
 export const useStore = create((set, get) => ({
   appStatus: 'intro',
   appStage: 'intro',
   gamePrepared: false,
   trackReady: false,
+  timerReady: false,
+  playbackPending: false,
+  playbackError: false,
   score: 0,
   currentPhrase: null,
   currentBeat: null,
@@ -27,22 +41,31 @@ export const useStore = create((set, get) => ({
   language: 'en',
 
   setAppStatus: (status) => set({ appStatus: status }),
-  setAppStage: (stage) => set({ appStage: stage }),
-  setGamePrepared: (prepared) => set({ gamePrepared: prepared }),
+  setAppStage: (stage) => set(state => withPreparedPlayback(state, { appStage: stage })),
+  setGamePrepared: (prepared) => set(state => withPreparedPlayback(state, { gamePrepared: prepared })),
   markTrackReady: () => {
     const state = get();
     const appStage = state.appStage === 'loading_track'
-      ? (state.lyricsData.length > 0 ? 'ready' : 'track_unavailable')
+      ? (state.lyricsData.length > 0 ? (state.timerReady ? 'ready' : 'loading_track') : 'track_unavailable')
       : state.appStage;
-    set({ trackReady: true, appStage });
+    set(withPreparedPlayback(state, { trackReady: true, appStage }));
+  },
+  markTimerReady: () => {
+    const state = get();
+    set(withPreparedPlayback(state, {
+      timerReady: true,
+      appStage: state.appStage === 'loading_track' && state.trackReady && state.lyricsData.length > 0
+        ? 'ready' : state.appStage,
+    }));
   },
   completeIntroFormation: () => {
     const state = get();
-    set({
+    if (state.appStage === 'track_unavailable') return;
+    set(withPreparedPlayback(state, {
       appStage: !state.trackReady
         ? 'loading_track'
-        : (state.lyricsData.length > 0 ? 'ready' : 'track_unavailable'),
-    });
+        : (state.lyricsData.length > 0 ? (state.timerReady ? 'ready' : 'loading_track') : 'track_unavailable'),
+    }));
   },
   setLanguage: (lang) => set({ language: lang }),
   incrementScore: (amount) => set((state) => ({ score: state.score + amount })),
@@ -63,36 +86,57 @@ export const useStore = create((set, get) => ({
     set({ lyricsData });
   },
   setInstrumentalGaps: (gaps) => set({ instrumentalGaps: gaps }),
-  setCurrentPosition: (position) => set({ currentPosition: position }),
+  setCurrentPosition: (position) => {
+    if (get().currentPosition !== position) set({ currentPosition: position });
+  },
   setShutterSpeed: (speed) => set({ shutterSpeed: Math.max(0.1, Math.min(3.0, speed)) }),
   setIsMobile: (val) => set({ isMobile: val }),
   setOrientationPermission: (permission) => set({ orientationPermission: permission }),
-  setCursorPosition: (x, y) => set({ cursorPosition: { x, y } }),
+  setCursorPosition: (x, y) => {
+    const previous = get().cursorPosition;
+    if (previous.x !== x || previous.y !== y) set({ cursorPosition: { x, y } });
+  },
   triggerBeat: () => set({ beatPulse: 1.0 }),
   decayBeat: (amount) => set((state) => ({ beatPulse: Math.max(0, state.beatPulse - amount) })),
   setArMode: (enabled) => set({ arMode: enabled }),
   toggleARMode: () => set((state) => ({ arMode: !state.arMode })),
 
-  togglePause: () => {
+  startPlayback: () => {
     const state = get();
-    const player = state.player;
-    if (!player) return;
-
-    if (state.isPaused) {
-      player.requestPlay();
-      set({ isPaused: false });
-    } else {
-      player.requestPause();
-      set({ isPaused: true });
+    if (!state.player || state.appStage !== 'ready' || !state.gamePrepared || state.playbackPending
+      || state.appStatus === 'results' || (state.appStatus === 'playing' && !state.isPaused)) return false;
+    set({ playbackPending: true, playbackError: false });
+    try {
+      // Keep this synchronous with the user's gesture (not a countdown timer).
+      if (state.player.requestPlay() === false) throw new Error('Playback request rejected');
+      return true;
+    } catch {
+      set({ playbackPending: false, playbackError: true });
+      return false;
     }
   },
 
-  captureLyric: (lyricId) => {
+  togglePause: () => {
     const state = get();
-    const lyric = state.lyricsData.find(l => l.id === lyricId);
-    if (lyric && !state.capturedLyrics.some(l => l.id === lyricId)) {
-      set({ capturedLyrics: [...state.capturedLyrics, lyric] });
+    const player = state.player;
+    if (!player || state.appStatus !== 'playing' || state.playbackPending) return;
+
+    if (state.isPaused) {
+      state.startPlayback();
+    } else {
+      // Confirm pause through onPause, just as resume waits for onPlay.
+      player.requestPause();
     }
+  },
+
+  captureLyric: (lyricId, scoreDelta = 0) => {
+    const state = get();
+    const lyric = getLyricIndex(state.lyricsData).get(lyricId);
+    if (lyric && !getCapturedIds(state.capturedLyrics).has(lyricId)) {
+      set({ capturedLyrics: [...state.capturedLyrics, lyric], score: state.score + scoreDelta });
+      return true;
+    }
+    return false;
   },
 
   reset: () => set({
@@ -100,6 +144,9 @@ export const useStore = create((set, get) => ({
     appStage: 'intro',
     gamePrepared: false,
     trackReady: false,
+    timerReady: false,
+    playbackPending: false,
+    playbackError: false,
     score: 0,
     currentPhrase: null,
     currentBeat: null,

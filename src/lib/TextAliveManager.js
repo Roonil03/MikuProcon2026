@@ -1,5 +1,6 @@
 import { Player } from 'textalive-app-api';
 import { useStore } from '../store/useStore';
+import { createPlaybackListeners } from './playerLifecycle';
 
 export const initializeTextAlive = () => {
   const existingPlayer = useStore.getState().player;
@@ -9,17 +10,24 @@ export const initializeTextAlive = () => {
   mediaContainer.style.display = "none";
   document.body.appendChild(mediaContainer);
 
-  const player = new Player({
-    app: {
-      token: import.meta.env.VITE_TEXTALIVE_TOKEN || 'test_token',
-      parameters: [],
-    },
-    mediaElement: mediaContainer,
-  });
+  let player;
+  try {
+    player = new Player({
+      app: {
+        token: import.meta.env.VITE_TEXTALIVE_TOKEN || 'test_token',
+        parameters: [],
+      },
+      mediaElement: mediaContainer,
+    });
+  } catch (error) {
+    mediaContainer.remove();
+    useStore.getState().setAppStage('track_unavailable');
+    console.error('Media initialization failed', error);
+    return null;
+  }
 
-  let lastBeat = null;
-  let lastPosition = 0;
   player.addListener({
+    ...createPlaybackListeners(player, useStore),
     onAppReady: (app) => {
       if (app.managed) return;
       player.createFromSongUrl("https://piapro.jp/t/PNpQ/20251209170719", {
@@ -32,6 +40,9 @@ export const initializeTextAlive = () => {
           lyricId: 126542,
           lyricDiffId: 28628,
         },
+      }).catch(error => {
+        useStore.getState().setAppStage('track_unavailable');
+        console.error('Track loading failed', error);
       });
     },
     onVideoReady: () => {
@@ -66,43 +77,6 @@ export const initializeTextAlive = () => {
       useStore.getState().setInstrumentalGaps(gaps);
       useStore.getState().markTrackReady();
     },
-    onTimeUpdate: (position) => {
-      useStore.getState().setCurrentPosition(position);
-
-      const b = player.findBeat(position);
-      if (b && (!lastBeat || b.startTime !== lastBeat.startTime)) {
-        lastBeat = b;
-        useStore.getState().setCurrentBeat(b.startTime);
-      }
-
-      const state = useStore.getState();
-      if (state.appStatus === 'playing') {
-        const lyrics = state.lyricsData;
-        if (lyrics.length > 0) {
-          const lastLyric = lyrics[lyrics.length - 1];
-          // Stop 4 seconds after the last lyric
-          if (position > lastLyric.endTime + 4000) {
-            player.requestStop();
-            useStore.getState().setAppStatus('results');
-          }
-        }
-        
-        // Loop detection: if position jumps backwards significantly
-        if (lastPosition > 0 && position < lastPosition - 5000) {
-          player.requestStop();
-          useStore.getState().setAppStatus('results');
-        }
-      }
-      lastPosition = position;
-    },
-    onTimerPlay: () => {
-      useStore.getState().setAppStatus('playing');
-    },
-    onTimerPause: () => {
-    },
-    onTimerStop: () => {
-      useStore.getState().setAppStatus('results');
-    }
   });
 
   useStore.getState().setPlayer(player);
