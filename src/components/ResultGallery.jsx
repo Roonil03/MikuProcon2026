@@ -1,14 +1,14 @@
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useEffect, useState } from 'react';
 import { useStore } from '../store/useStore';
 
 const WARM_GOLD = 'rgba(230, 199, 137, 1)';
 const COOL_BLUE = 'rgba(143, 199, 234, 1)';
 
-const PolaroidCard = ({ lyric, index }) => {
+const PolaroidCard = ({ lyric, index, language }) => {
   const rotation = (index % 2 === 0 ? -1 : 1) * (2 + ((index * 37) % 40) / 10);
 
   return (
-    <div style={{
+    <div className="polaroid-card" style={{
       display: 'inline-block',
       background: '#fdfdfd',
       padding: '12px 12px 40px 12px',
@@ -54,7 +54,7 @@ const PolaroidCard = ({ lyric, index }) => {
         color: '#888',
         textAlign: 'left',
       }}>
-        SHUTTER CHANCE / {String(Math.floor(lyric.startTime / 60000)).padStart(2, '0')}:{String(Math.floor((lyric.startTime % 60000) / 1000)).padStart(2, '0')}
+        {language === 'ja' ? 'シャッターチャンス' : 'SHUTTER CHANCE'} / {String(Math.floor(lyric.startTime / 60000)).padStart(2, '0')}:{String(Math.floor((lyric.startTime % 60000) / 1000)).padStart(2, '0')}
       </div>
     </div>
   );
@@ -62,6 +62,9 @@ const PolaroidCard = ({ lyric, index }) => {
 
 export const ResultGallery = () => {
   const galleryRef = useRef(null);
+  const headingRef = useRef(null);
+  const [downloadStatus, setDownloadStatus] = useState('');
+  useEffect(() => { headingRef.current?.focus(); }, []);
   const capturedLyrics = useStore(state => state.capturedLyrics);
   const score = useStore(state => state.score);
   const language = useStore(state => state.language);
@@ -72,6 +75,7 @@ export const ResultGallery = () => {
 
   const handleDownload = useCallback(async () => {
     if (!galleryRef.current) return;
+    setDownloadStatus('saving');
     try {
       const { default: html2canvas } = await import('html2canvas');
       const canvas = await html2canvas(galleryRef.current, {
@@ -82,8 +86,9 @@ export const ResultGallery = () => {
       link.download = 'shutter-chance-archive.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
+      setDownloadStatus('saved');
     } catch {
-      // Silent fallback
+      setDownloadStatus('error');
     }
   }, []);
 
@@ -98,7 +103,7 @@ export const ResultGallery = () => {
 
   if (capturedLyrics.length === 0) {
     return (
-      <div style={{
+      <div className="overlay-viewport results-empty" role="region" aria-label={language === 'ja' ? '撮影結果' : 'Capture results'} style={{
         position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
         zIndex: 100,
         display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
@@ -106,7 +111,7 @@ export const ResultGallery = () => {
         color: '#aaa',
         fontFamily: bodyFont,
       }}>
-        <h2 style={{ marginBottom: '10px', color: '#fff', fontFamily: '"Kranky", sans-serif', fontSize: '2rem' }}>
+        <h2 ref={headingRef} tabIndex={-1} style={{ marginBottom: '10px', color: '#fff', fontFamily: '"Kranky", sans-serif', fontSize: '2rem' }}>
           {language === 'ja' ? '\u30AD\u30E3\u30D7\u30C1\u30E3\u306A\u3057' : 'No Captures'}
         </h2>
         <p>{language === 'ja' ? '\u3053\u306E\u30BB\u30C3\u30B7\u30E7\u30F3\u3067\u306F\u6B4C\u8A5E\u304C\u30AD\u30E3\u30D7\u30C1\u30E3\u3055\u308C\u307E\u305B\u3093\u3067\u3057\u305F\u3002' : 'No lyrics were captured during this session.'}</p>
@@ -131,7 +136,7 @@ export const ResultGallery = () => {
   }
 
   return (
-    <div style={{
+    <div className="results-viewport" role="region" aria-label={language === 'ja' ? '撮影結果' : 'Capture results'} style={{
       position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
       zIndex: 100,
       display: 'flex', flexDirection: 'column',
@@ -144,7 +149,7 @@ export const ResultGallery = () => {
         textAlign: 'center',
         padding: '30px 20px 10px',
       }}>
-        <h1 style={{
+        <h1 ref={headingRef} tabIndex={-1} style={{
           fontSize: '2.5rem',
           fontWeight: 400,
           fontFamily: '"Kranky", sans-serif',
@@ -175,11 +180,18 @@ export const ResultGallery = () => {
         }}
       >
         {capturedLyrics.map((lyric, i) => (
-          <PolaroidCard key={lyric.id} lyric={lyric} index={i} />
+          <PolaroidCard key={lyric.id} lyric={lyric} index={i} language={language} />
         ))}
       </div>
 
-      <div style={{
+      {downloadStatus && <p role="status" style={{ textAlign: 'center', paddingInline: '20px', color: downloadStatus === 'error' ? '#e89090' : COOL_BLUE }}>
+        {downloadStatus === 'error'
+          ? (language === 'ja' ? '保存できませんでした。もう一度お試しください。' : 'Could not save the archive. Please try again.')
+          : downloadStatus === 'saved'
+            ? (language === 'ja' ? 'ダウンロードを開始しました。' : 'Download started.')
+            : (language === 'ja' ? 'アーカイブを保存中...' : 'Saving the archive...')}
+      </p>}
+      <div className="results-actions" style={{
         textAlign: 'center',
         padding: '20px',
         display: 'flex',
@@ -189,6 +201,8 @@ export const ResultGallery = () => {
       }}>
         <button
           onClick={handleDownload}
+          disabled={downloadStatus === 'saving'}
+          aria-busy={downloadStatus === 'saving'}
           style={{
             padding: '14px 36px',
             fontSize: language === 'ja' ? '0.85rem' : '1.1rem',
@@ -210,7 +224,7 @@ export const ResultGallery = () => {
             e.target.style.color = WARM_GOLD;
           }}
         >
-          {language === 'ja' ? 'アーカイブをダウンロード' : 'Download Archive'}
+          {downloadStatus === 'saving' ? (language === 'ja' ? '保存中...' : 'Saving...') : (language === 'ja' ? 'アーカイブをダウンロード' : 'Download Archive')}
         </button>
 
         <button

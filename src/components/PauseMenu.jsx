@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { useStore } from '../store/useStore';
 import { ASSETS } from '../constants/assets';
 
@@ -11,6 +12,13 @@ export const PauseMenu = () => {
   const language = useStore(state => state.language);
   const playbackPending = useStore(state => state.playbackPending);
   const playbackError = useStore(state => state.playbackError);
+
+  const resumeRef = useRef(null);
+  useEffect(() => {
+    const previousFocus = document.activeElement;
+    resumeRef.current?.focus();
+    return () => { if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus(); };
+  }, []);
 
   const bodyFont = language === 'ja'
     ? '"Shizuru", system-ui'
@@ -26,18 +34,19 @@ export const PauseMenu = () => {
   };
 
   return (
-    <div style={{
+    <div className="overlay-viewport" role="dialog" aria-modal="true" aria-labelledby="pause-title" onKeyDown={(event) => { if (event.key === 'Tab') { event.preventDefault(); resumeRef.current?.focus(); } }} style={{
       position: 'absolute',
       top: 0, left: 0, width: '100%', height: '100%',
       zIndex: 150,
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
+      flexDirection: 'column',
       background: 'rgba(10,10,15,0.88)',
       backdropFilter: 'blur(12px)',
       color: 'white',
     }}>
-      <div style={{
+      <div className="pause-panel" style={{
         textAlign: 'center',
         background: 'rgba(230,199,137,0.02)',
         border: '1px solid rgba(230,199,137,0.06)',
@@ -67,7 +76,7 @@ export const PauseMenu = () => {
           </div>
         </div>
 
-        <h2 style={{
+        <h2 id="pause-title" style={{
           fontFamily: '"Kranky", sans-serif',
           fontSize: '2rem',
           fontWeight: 400,
@@ -99,6 +108,7 @@ export const PauseMenu = () => {
         </div>
 
         <button
+          ref={resumeRef}
           onClick={handleResume}
           disabled={playbackPending}
           aria-busy={playbackPending}
@@ -137,10 +147,10 @@ export const PauseMenu = () => {
           marginTop: '16px',
           fontFamily: '"Press Start 2P", sans-serif',
           fontSize: '0.6rem',
-          color: '#555',
+          color: '#aaa',
           letterSpacing: '2px',
         }}>
-          PRESS ESC TO TOGGLE
+          {language === 'ja' ? 'Escキーまたはボタンで再開' : 'Press Esc or tap Resume'}
         </div>
       </div>
     </div>
