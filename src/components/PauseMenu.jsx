@@ -9,6 +9,8 @@ export const PauseMenu = () => {
   const score = useStore(state => state.score);
   const capturedLyrics = useStore(state => state.capturedLyrics);
   const language = useStore(state => state.language);
+  const playbackPending = useStore(state => state.playbackPending);
+  const playbackError = useStore(state => state.playbackError);
 
   const bodyFont = language === 'ja'
     ? '"Shizuru", system-ui'
@@ -20,8 +22,6 @@ export const PauseMenu = () => {
   };
 
   const handleResume = () => {
-    const audio = new Audio(ASSETS.SFX_CLICK);
-    audio.play().catch(() => {});
     togglePause();
   };
 
@@ -100,6 +100,8 @@ export const PauseMenu = () => {
 
         <button
           onClick={handleResume}
+          disabled={playbackPending}
+          aria-busy={playbackPending}
           onMouseEnter={playHover}
           style={{
             display: 'block',
@@ -127,8 +129,9 @@ export const PauseMenu = () => {
             e.target.style.boxShadow = 'none';
           }}
         >
-          {language === 'ja' ? '\u518D\u958B' : 'Resume'}
+          {playbackPending ? (language === 'ja' ? '準備中...' : 'Preparing...') : (language === 'ja' ? '\u518D\u958B' : 'Resume')}
         </button>
+        {playbackError && <p role="alert">{language === 'ja' ? '再開できませんでした。もう一度お試しください。' : 'Playback could not resume. Please retry.'}</p>}
 
         <div style={{
           marginTop: '16px',
