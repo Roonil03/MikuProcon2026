@@ -27,7 +27,8 @@ This is the codebase for the Magical Mirai 2026 Programming Contest, visualizing
    ```bash
    npm install
    ```
-2. Start the development server:
+2. Set `VITE_TEXTALIVE_TOKEN` in `.env.local` to the app token issued for this project. Vite embeds this public app identifier in the client bundle. For GitHub Pages, set the repository Actions variable `VITE_TEXTALIVE_TOKEN` before deploying. [TextAlive developer registration](https://developer.textalive.jp/app/)
+3. Start the development server:
    ```bash
    npm run dev
    ```
@@ -67,7 +68,8 @@ For a full list of contributions, libraries, fonts, and creative commons assets 
    ```bash
    npm install
    ```
-2. 開発サーバーを起動します:
+2. `.env.local` の `VITE_TEXTALIVE_TOKEN` に、このアプリ用に発行されたトークンを設定します。この識別子はビルド時に公開用のクライアントコードに組み込まれます。GitHub Pages に公開する際は、リポジトリの Actions 変数 `VITE_TEXTALIVE_TOKEN` にも設定してください。[TextAlive の開発者登録](https://developer.textalive.jp/app/)
+3. 開発サーバーを起動します:
    ```bash
    npm run dev
    ```

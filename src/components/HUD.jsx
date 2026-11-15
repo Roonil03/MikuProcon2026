@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useStore, MAX_GALLERY_DISPLAY } from '../store/useStore';
-import { ASSETS } from '../constants/assets';
+import { playHoverSound } from '../lib/soundEffects';
+import { attachCursorInput } from '../lib/cursorInput';
 import { xrStore } from '../lib/xrStore';
 
 const WARM_GOLD = 'rgba(230, 199, 137, 1)';
@@ -21,34 +22,12 @@ export const HUD = () => {
     : '"Kranky", sans-serif';
 
   useEffect(() => {
-    let animationFrame = null;
-    let latestPoint = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-
-    const handleMove = (e) => {
-      if (useStore.getState().isMobile && useStore.getState().orientationPermission === 'granted') return;
-      const x = e.clientX ?? e.touches?.[0]?.clientX ?? (window.innerWidth / 2);
-      const y = e.clientY ?? e.touches?.[0]?.clientY ?? (window.innerHeight / 2);
-      latestPoint = { x, y };
-
-      if (animationFrame !== null) return;
-
-      animationFrame = window.requestAnimationFrame(() => {
-        animationFrame = null;
-        const { x: frameX, y: frameY } = latestPoint;
-        if (crosshairRef.current) {
-          crosshairRef.current.style.transform = `translate3d(${frameX - 50}px, ${frameY - 50}px, 0)`;
-        }
-        useStore.getState().setCursorPosition(frameX / window.innerWidth, frameY / window.innerHeight);
-      });
-    };
-
-    window.addEventListener('mousemove', handleMove);
-    window.addEventListener('touchmove', handleMove, { passive: true });
-    return () => {
-      if (animationFrame !== null) window.cancelAnimationFrame(animationFrame);
-      window.removeEventListener('mousemove', handleMove);
-      window.removeEventListener('touchmove', handleMove);
-    };
+    return attachCursorInput(window, useStore.getState, (x, y) => {
+      if (crosshairRef.current) {
+        crosshairRef.current.style.transform = `translate3d(${x - 50}px, ${y - 50}px, 0)`;
+      }
+      useStore.getState().setCursorPosition(x / window.innerWidth, y / window.innerHeight);
+    });
   }, []);
 
   useEffect(() => {
@@ -80,11 +59,6 @@ export const HUD = () => {
     if (player && appStatus === 'ready') {
       useStore.getState().startPlayback();
     }
-  };
-
-  const playHoverSound = () => {
-    const audio = new Audio(ASSETS.SFX_HOVER);
-    audio.play().catch(() => {});
   };
 
   const displayedCaptures = capturedLyrics.slice(-MAX_GALLERY_DISPLAY);

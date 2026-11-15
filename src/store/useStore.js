@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { getCapturedIds, getLyricIndex } from '../lib/captureLookup.js';
 
 const MAX_GALLERY_DISPLAY = 12;
 
@@ -75,11 +76,16 @@ export const useStore = create((set, get) => ({
     set({ lyricsData });
   },
   setInstrumentalGaps: (gaps) => set({ instrumentalGaps: gaps }),
-  setCurrentPosition: (position) => set({ currentPosition: position }),
+  setCurrentPosition: (position) => {
+    if (get().currentPosition !== position) set({ currentPosition: position });
+  },
   setShutterSpeed: (speed) => set({ shutterSpeed: Math.max(0.1, Math.min(3.0, speed)) }),
   setIsMobile: (val) => set({ isMobile: val }),
   setOrientationPermission: (permission) => set({ orientationPermission: permission }),
-  setCursorPosition: (x, y) => set({ cursorPosition: { x, y } }),
+  setCursorPosition: (x, y) => {
+    const previous = get().cursorPosition;
+    if (previous.x !== x || previous.y !== y) set({ cursorPosition: { x, y } });
+  },
   triggerBeat: () => set({ beatPulse: 1.0 }),
   decayBeat: (amount) => set((state) => ({ beatPulse: Math.max(0, state.beatPulse - amount) })),
   setArMode: (enabled) => set({ arMode: enabled }),
@@ -113,12 +119,14 @@ export const useStore = create((set, get) => ({
     }
   },
 
-  captureLyric: (lyricId) => {
+  captureLyric: (lyricId, scoreDelta = 0) => {
     const state = get();
-    const lyric = state.lyricsData.find(l => l.id === lyricId);
-    if (lyric && !state.capturedLyrics.some(l => l.id === lyricId)) {
-      set({ capturedLyrics: [...state.capturedLyrics, lyric] });
+    const lyric = getLyricIndex(state.lyricsData).get(lyricId);
+    if (lyric && !getCapturedIds(state.capturedLyrics).has(lyricId)) {
+      set({ capturedLyrics: [...state.capturedLyrics, lyric], score: state.score + scoreDelta });
+      return true;
     }
+    return false;
   },
 
   reset: () => set({
