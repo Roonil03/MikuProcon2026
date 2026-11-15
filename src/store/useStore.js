@@ -7,6 +7,9 @@ export const useStore = create((set, get) => ({
   appStage: 'intro',
   gamePrepared: false,
   trackReady: false,
+  timerReady: false,
+  playbackPending: false,
+  playbackError: false,
   score: 0,
   currentPhrase: null,
   currentBeat: null,
@@ -32,16 +35,25 @@ export const useStore = create((set, get) => ({
   markTrackReady: () => {
     const state = get();
     const appStage = state.appStage === 'loading_track'
-      ? (state.lyricsData.length > 0 ? 'ready' : 'track_unavailable')
+      ? (state.lyricsData.length > 0 ? (state.timerReady ? 'ready' : 'loading_track') : 'track_unavailable')
       : state.appStage;
     set({ trackReady: true, appStage });
   },
+  markTimerReady: () => {
+    const state = get();
+    set({
+      timerReady: true,
+      appStage: state.appStage === 'loading_track' && state.trackReady && state.lyricsData.length > 0
+        ? 'ready' : state.appStage,
+    });
+  },
   completeIntroFormation: () => {
     const state = get();
+    if (state.appStage === 'track_unavailable') return;
     set({
       appStage: !state.trackReady
         ? 'loading_track'
-        : (state.lyricsData.length > 0 ? 'ready' : 'track_unavailable'),
+        : (state.lyricsData.length > 0 ? (state.timerReady ? 'ready' : 'loading_track') : 'track_unavailable'),
     });
   },
   setLanguage: (lang) => set({ language: lang }),
@@ -73,17 +85,31 @@ export const useStore = create((set, get) => ({
   setArMode: (enabled) => set({ arMode: enabled }),
   toggleARMode: () => set((state) => ({ arMode: !state.arMode })),
 
+  startPlayback: () => {
+    const state = get();
+    if (!state.player || state.appStage !== 'ready' || !state.gamePrepared || state.playbackPending
+      || state.appStatus === 'results' || (state.appStatus === 'playing' && !state.isPaused)) return false;
+    set({ playbackPending: true, playbackError: false });
+    try {
+      // Keep this synchronous with the user's gesture (not a countdown timer).
+      if (state.player.requestPlay() === false) throw new Error('Playback request rejected');
+      return true;
+    } catch {
+      set({ playbackPending: false, playbackError: true });
+      return false;
+    }
+  },
+
   togglePause: () => {
     const state = get();
     const player = state.player;
-    if (!player) return;
+    if (!player || state.appStatus !== 'playing' || state.playbackPending) return;
 
     if (state.isPaused) {
-      player.requestPlay();
-      set({ isPaused: false });
+      state.startPlayback();
     } else {
+      // Confirm pause through onPause, just as resume waits for onPlay.
       player.requestPause();
-      set({ isPaused: true });
     }
   },
 
@@ -100,6 +126,9 @@ export const useStore = create((set, get) => ({
     appStage: 'intro',
     gamePrepared: false,
     trackReady: false,
+    timerReady: false,
+    playbackPending: false,
+    playbackError: false,
     score: 0,
     currentPhrase: null,
     currentBeat: null,

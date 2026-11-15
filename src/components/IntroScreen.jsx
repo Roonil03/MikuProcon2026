@@ -24,6 +24,7 @@ const TEXT_EN = {
   begin: 'Begin',
   start: 'Start',
   preparingGame: 'Preparing...',
+  playbackFailed: 'Playback could not start. Press Start to retry.',
   gyroscope: 'GYROSCOPE MODE',
   cursor: 'CURSOR MODE',
   detected: 'DETECTED',
@@ -46,6 +47,7 @@ const TEXT_JA = {
   begin: '\u59CB\u3081\u308B',
   start: '\u30B9\u30BF\u30FC\u30C8',
   preparingGame: '準備中...',
+  playbackFailed: '再生を開始できませんでした。スタートを押して再試行してください。',
   gyroscope: '\u30B8\u30E3\u30A4\u30ED\u30E2\u30FC\u30C9',
   cursor: '\u30AB\u30FC\u30BD\u30EB\u30E2\u30FC\u30C9',
   detected: '\u691C\u51FA',
@@ -154,18 +156,17 @@ export const IntroScreen = () => {
   const [titleVisible, setTitleVisible] = useState(false);
   const [contentVisible, setContentVisible] = useState(false);
   const [btnVisible, setBtnVisible] = useState(false);
-  const [countdown, setCountdown] = useState(null);
-  const countdownInterval = useRef(null);
   const isMobile = navigator.maxTouchPoints > 0
     || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   const language = useStore(state => state.language);
   const appStage = useStore(state => state.appStage);
   const gamePrepared = useStore(state => state.gamePrepared);
+  const playbackPending = useStore(state => state.playbackPending);
+  const playbackError = useStore(state => state.playbackError);
   const t = language === 'ja' ? TEXT_JA : TEXT_EN;
   const particlesRef = useRef(null);
 
   useEffect(() => () => {
-    if (countdownInterval.current !== null) clearInterval(countdownInterval.current);
     const particles = particlesRef.current;
     if (particles) {
       const geometry = particles.getGeometry();
@@ -278,9 +279,7 @@ export const IntroScreen = () => {
   };
 
   const handleStart = () => {
-    if (countdownInterval.current !== null || !useStore.getState().gamePrepared) return;
-    const audio = new Audio(ASSETS.SFX_CLICK);
-    audio.play().catch(() => {});
+    if (!useStore.getState().startPlayback()) return;
 
     const orientationEvent = window.DeviceOrientationEvent;
     if (isMobile && typeof orientationEvent?.requestPermission === 'function') {
@@ -288,23 +287,6 @@ export const IntroScreen = () => {
         .then(permission => useStore.getState().setOrientationPermission(permission))
         .catch(() => useStore.getState().setOrientationPermission('denied'));
     }
-
-    setCountdown(3);
-    let count = 3;
-    countdownInterval.current = setInterval(() => {
-      count -= 1;
-      if (count > 0) {
-        setCountdown(count);
-      } else {
-        clearInterval(countdownInterval.current);
-        countdownInterval.current = null;
-        const player = useStore.getState().player;
-        if (player) {
-          player.requestPlay();
-          useStore.getState().setAppStatus('playing');
-        }
-      }
-    }, 1000);
   };
 
   const playHover = () => {
@@ -623,21 +605,10 @@ export const IntroScreen = () => {
           zIndex: 10,
           animation: 'fadeInUp 0.8s ease-out forwards',
         }}>
-          {countdown !== null ? (
-            <div style={{
-              fontFamily: '"Press Start 2P", system-ui',
-              fontSize: '4rem',
-              color: WARM_GOLD,
-              textShadow: `0 0 20px ${WARM_GOLD_HALF}`,
-              animation: 'pulse 1s infinite',
-            }}>
-              {countdown}
-            </div>
-          ) : (
             <button
               onClick={handleStart}
-              disabled={!gamePrepared}
-              aria-busy={!gamePrepared}
+              disabled={!gamePrepared || playbackPending}
+              aria-busy={!gamePrepared || playbackPending}
               onMouseEnter={playHover}
               style={{
                 fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Kranky", sans-serif',
@@ -666,9 +637,9 @@ export const IntroScreen = () => {
                 e.target.style.boxShadow = '0 0 60px rgba(230,199,137,0.3)';
               }}
             >
-              {gamePrepared ? t.start : t.preparingGame}
+              {gamePrepared && !playbackPending ? t.start : t.preparingGame}
             </button>
-          )}
+            {playbackError && <p role="alert" style={{ color: '#e89090', fontFamily: bodyFont }}>{t.playbackFailed}</p>}
         </div>
       )}
 
