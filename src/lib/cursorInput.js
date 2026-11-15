@@ -1,6 +1,6 @@
 export function canTrackCursor(state) {
   return state.appStatus === 'playing' && !state.isPaused && !state.arMode
-    && !(state.isMobile && state.orientationPermission === 'granted');
+    && !(state.isMobile && state.orientationActive);
 }
 
 export function attachCursorInput(target, getState, onMove) {
