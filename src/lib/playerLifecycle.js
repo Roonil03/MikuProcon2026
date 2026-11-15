@@ -3,9 +3,27 @@
 export function createPlaybackListeners(player, store) {
   let lastBeat = null;
   let hasProgress = false;
+  let songlePlayer = null;
+
+  const finishPlayback = () => {
+    if (store.getState().appStatus !== 'playing' || !hasProgress) return;
+    store.setState({ appStatus: 'results', isPaused: false, playbackPending: false });
+  };
+  const detachFinishListener = () => {
+    songlePlayer?.off('finish', finishPlayback);
+    songlePlayer = null;
+  };
 
   return {
-    onTimerReady: () => store.getState().markTimerReady(),
+    onTimerReady: timer => {
+      detachFinishListener();
+      songlePlayer = timer?.songlePlayer ?? null;
+      // Songle emits pause before finish at the native media end. In SDK 0.4,
+      // that pause clears the polling handler and can suppress onStop entirely.
+      songlePlayer?.on('finish', finishPlayback);
+      store.getState().markTimerReady();
+    },
+    onDispose: detachFinishListener,
     onPlay: () => {
       const state = store.getState();
       if (state.appStage !== 'ready' || !state.gamePrepared || state.appStatus === 'results') return;
