@@ -30,86 +30,73 @@ async function processImages() {
 
   for (const file of files) {
     const filePath = path.join(ASSETS_DIR, file);
-    try {
-      const { data, info } = await sharp(filePath)
-        .ensureAlpha()
-        .raw()
-        .toBuffer({ resolveWithObject: true });
+    const { data, info } = await sharp(filePath)
+      .toColourspace('srgb')
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
 
-      const validPoints = [];
-      for (let y = 0; y < info.height; y++) {
-        for (let x = 0; x < info.width; x++) {
-          const idx = (y * info.width + x) * 4;
-          const a = data[idx + 3];
-          if (a > 50) { // non-transparent
-            validPoints.push({
-              x: x,
-              y: y
-            });
-          }
+    const validPoints = [];
+    for (let y = 0; y < info.height; y++) {
+      for (let x = 0; x < info.width; x++) {
+        const idx = (y * info.width + x) * 4;
+        const a = data[idx + 3];
+        if (a > 50) { // non-transparent
+          validPoints.push({
+            x: x,
+            y: y
+          });
         }
       }
-
-      if (validPoints.length === 0) continue;
-
-      // Randomly sample TARGET_POINTS
-      const sampled = [];
-      for (let i = 0; i < TARGET_POINTS; i++) {
-        sampled.push(validPoints[Math.floor(Math.random() * validPoints.length)]);
-      }
-
-      // Calculate bounds for centering and scaling
-      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-      sampled.forEach(p => {
-        if (p.x < minX) minX = p.x;
-        if (p.x > maxX) maxX = p.x;
-        if (p.y < minY) minY = p.y;
-        if (p.y > maxY) maxY = p.y;
-      });
-
-      const centerX = (minX + maxX) / 2;
-      const centerY = (minY + maxY) / 2;
-      const maxDim = Math.max(maxX - minX, maxY - minY);
-      const scale = 25 / maxDim; // Scale to roughly fit a 25x25 area in 3D space
-
-      const finalPoints = sampled.map(p => {
-        // Invert Y because canvas Y is down, WebGL Y is up
-        const nx = (p.x - centerX) * scale;
-        const ny = -(p.y - centerY) * scale;
-        // Assign random palette color
-        const color = PALETTE[Math.floor(Math.random() * PALETTE.length)];
-        return { x: nx, y: ny, color };
-      });
-
-      characters.push({
-        name: file.replace(/\.[^/.]+$/, ""),
-        points: finalPoints
-      });
-      console.log(`Processed ${file}: generated ${TARGET_POINTS} points.`);
-    } catch (e) {
-      console.error(`Error processing ${file}:`, e.message);
     }
+
+    if (validPoints.length === 0) throw new Error(`No visible pixels in ${file}`);
+
+    // Randomly sample TARGET_POINTS
+    const sampled = [];
+    for (let i = 0; i < TARGET_POINTS; i++) {
+      sampled.push(validPoints[Math.floor(Math.random() * validPoints.length)]);
+    }
+
+    // Calculate bounds for centering and scaling
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    sampled.forEach(p => {
+      if (p.x < minX) minX = p.x;
+      if (p.x > maxX) maxX = p.x;
+      if (p.y < minY) minY = p.y;
+      if (p.y > maxY) maxY = p.y;
+    });
+
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+    const maxDim = Math.max(1, maxX - minX, maxY - minY);
+    const scale = 25 / maxDim; // Scale to roughly fit a 25x25 area in 3D space
+
+    const finalPoints = sampled.map(p => {
+      // Invert Y because canvas Y is down, WebGL Y is up
+      const nx = (p.x - centerX) * scale;
+      const ny = -(p.y - centerY) * scale;
+      // Assign random palette color
+      const color = PALETTE[Math.floor(Math.random() * PALETTE.length)];
+      return { x: nx, y: ny, color };
+    });
+
+    characters.push({
+      name: file.replace(/\.[^/.]+$/, ""),
+      points: finalPoints
+    });
+    console.log(`Processed ${file}: generated ${TARGET_POINTS} points.`);
   }
 
-  // Fallback if no images found
   if (characters.length === 0) {
-    console.log("No valid character images found in ./assets/. Creating a dummy placeholder shape.");
-    const dummyPoints = [];
-    for (let i = 0; i < TARGET_POINTS; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const radius = Math.random() * 10;
-      const color = PALETTE[Math.floor(Math.random() * PALETTE.length)];
-      dummyPoints.push({
-        x: Math.cos(angle) * radius,
-        y: Math.sin(angle) * radius,
-        color
-      });
-    }
-    characters.push({ name: 'dummy_circle', points: dummyPoints });
+    throw new Error('Add character source images to assets/ before regenerating characterData.json.');
   }
 
   fs.writeFileSync(OUTPUT_FILE, JSON.stringify(characters));
   console.log(`Saved character data to ${OUTPUT_FILE}`);
 }
 
-processImages();
+processImages().catch(error => {
+  console.error(error.message);
+  process.exitCode = 1;
+});
