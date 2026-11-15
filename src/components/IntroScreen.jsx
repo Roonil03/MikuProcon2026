@@ -16,15 +16,16 @@ const ACCENT_GRADIENT = `linear-gradient(135deg, ${WARM_GOLD} 0%, ${COOL_BLUE} 1
 
 const TEXT_EN = {
   howToPlay: 'How To Play',
-  mobileTilt: 'Tilt your device to aim the viewfinder. Lyrics will fly towards you as the song plays.',
+  mobileTilt: 'Tilt your device to aim, or drag the screen when motion controls are unavailable. Lyrics fly towards you as the song plays.',
   mobileTap: 'Tap the screen when a lyric aligns with the center of the crosshair. Timing precision determines your score.',
   desktopMove: 'Move your mouse or trackpad to aim the viewfinder at the incoming lyrics.',
   desktopClick: 'Click the left mouse button when a lyric aligns perfectly with the crosshair. Your timing determines the score.',
-  captured: 'Captured lyrics are archived as polaroid frames. Press Escape at any time to pause.',
+  captured: 'Captured lyrics are archived as polaroid frames. Press Escape or use Pause to pause.',
+  mobileCaptured: 'Captured lyrics are archived as polaroid frames. Tap Pause at any time to pause.',
   begin: 'Begin',
   start: 'Start',
   preparingGame: 'Preparing...',
-  gyroscope: 'GYROSCOPE MODE',
+  gyroscope: 'GYROSCOPE / TOUCH MODE',
   cursor: 'CURSOR MODE',
   detected: 'DETECTED',
   disclaimer: 'Note: The Japanese translations have been produced using translation software and may not be perfectly accurate. Apologies for any errors.',
@@ -34,19 +35,21 @@ const TEXT_EN = {
   trackUnavailableMessage: 'Synced lyrics could not be loaded. Check your connection and retry.',
   retry: 'Retry',
   forming: 'FORMING...',
+  preloading: 'PRELOADING...',
 };
 
 const TEXT_JA = {
   howToPlay: '\u904A\u3073\u65B9',
-  mobileTilt: '\u30C7\u30D0\u30A4\u30B9\u3092\u50BE\u3051\u3066\u30D5\u30A1\u30A4\u30F3\u30C0\u30FC\u3092\u5408\u308F\u305B\u3066\u304F\u3060\u3055\u3044\u3002\u66F2\u306E\u518D\u751F\u4E2D\u3001\u6B4C\u8A5E\u304C\u98DB\u3093\u3067\u304D\u307E\u3059\u3002',
+  mobileTilt: '端末を傾けて照準を合わせます。モーション操作が使えない場合は画面をドラッグしてください。曲に合わせて歌詞が飛んできます。',
   mobileTap: '\u6B4C\u8A5E\u304C\u30AF\u30ED\u30B9\u30D8\u30A2\u306E\u4E2D\u5FC3\u306B\u63C3\u3063\u305F\u3089\u753B\u9762\u3092\u30BF\u30C3\u30D7\u3057\u3066\u304F\u3060\u3055\u3044\u3002\u30BF\u30A4\u30DF\u30F3\u30B0\u306E\u7CBE\u5EA6\u304C\u30B9\u30B3\u30A2\u306B\u5F71\u97FF\u3057\u307E\u3059\u3002',
   desktopMove: 'マウスやトラックパッドを動かしてファインダーを歌詞に合わせてください。',
   desktopClick: '歌詞がクロスヘアの中心に完全に揃ったら左クリックしてください。タイミングの精度がスコアに影響します。',
   captured: '\u30AD\u30E3\u30D7\u30C1\u30E3\u3057\u305F\u6B4C\u8A5E\u306F\u30DD\u30E9\u30ED\u30A4\u30C9\u30D5\u30EC\u30FC\u30E0\u3068\u3057\u3066\u30A2\u30FC\u30AB\u30A4\u30D6\u3055\u308C\u307E\u3059\u3002\u3044\u3064\u3067\u3082Esc\u30AD\u30FC\u3067\u4E00\u6642\u505C\u6B62\u3067\u304D\u307E\u3059\u3002',
+  mobileCaptured: '撮影した歌詞はポラロイドとして保存されます。一時停止ボタンでいつでも中断できます。',
   begin: '\u59CB\u3081\u308B',
   start: '\u30B9\u30BF\u30FC\u30C8',
   preparingGame: '準備中...',
-  gyroscope: '\u30B8\u30E3\u30A4\u30ED\u30E2\u30FC\u30C9',
+  gyroscope: 'ジャイロ・タッチモード',
   cursor: '\u30AB\u30FC\u30BD\u30EB\u30E2\u30FC\u30C9',
   detected: '\u691C\u51FA',
   disclaimer: '\u6CE8\u610F\uFF1A\u65E5\u672C\u8A9E\u306E\u7FFB\u8A33\u306F\u7FFB\u8A33\u30BD\u30D5\u30C8\u30A6\u30A7\u30A2\u3092\u4F7F\u7528\u3057\u3066\u304A\u308A\u3001\u5B8C\u5168\u306B\u6B63\u78BA\u3067\u306F\u306A\u3044\u5834\u5408\u304C\u3042\u308A\u307E\u3059\u3002\u8AA4\u308A\u304C\u3042\u308C\u3070\u304A\u8A6B\u3073\u7533\u3057\u4E0A\u3052\u307E\u3059\u3002',
@@ -56,6 +59,7 @@ const TEXT_JA = {
   trackUnavailableMessage: '\u540C\u671F\u6B4C\u8A5E\u3092\u8AAD\u307F\u8FBC\u3081\u307E\u305B\u3093\u3067\u3057\u305F\u3002\u63A5\u7D9A\u3092\u78BA\u8A8D\u3057\u3066\u518D\u8A66\u884C\u3057\u3066\u304F\u3060\u3055\u3044\u3002',
   retry: '\u518D\u8A66\u884C',
   forming: '\u5F62\u6210\u4E2D...',
+  preloading: '事前読み込み中...',
 };
 
 const createMikuParticleData = () => {
@@ -364,6 +368,8 @@ export const IntroScreen = () => {
 
       <button
         onClick={toggleLang}
+        aria-label={language === 'en' ? '日本語に切り替え' : 'Switch to English'}
+        lang={language === 'en' ? 'ja' : 'en'}
         style={{
           position: 'absolute',
           top: '20px',
@@ -392,21 +398,21 @@ export const IntroScreen = () => {
         {language === 'en' ? 'JP' : 'EN'}
       </button>
 
-      <div style={{
+      <div className="intro-header-status" role="status" style={{
         position: 'absolute',
         top: '20px',
         left: '20px',
         fontFamily: '"Press Start 2P", sans-serif',
         fontSize: '0.6rem',
         letterSpacing: '2px',
-        color: showTrackUnavailable ? '#e89090' : (appStage === 'ready' ? 'rgba(143,199,234,0.6)' : 'rgba(230,199,137,0.4)'),
+        color: showTrackUnavailable ? '#e89090' : (appStage === 'ready' ? 'rgba(143,199,234,0.9)' : 'rgba(230,199,137,0.85)'),
         transition: 'color 0.5s ease',
         zIndex: 10,
       }}>
-        {showTrackUnavailable ? t.trackUnavailable : (appStage === 'ready' ? t.trackReady : (appStage === 'loading_track' ? t.loadingTrack : (appStage === 'forming' ? t.forming : 'PRELOADING...')))}
+        {showTrackUnavailable ? t.trackUnavailable : (appStage === 'ready' ? t.trackReady : (appStage === 'loading_track' ? t.loadingTrack : (appStage === 'forming' ? t.forming : t.preloading)))}
       </div>
 
-      <div className="intro-viewport">
+      <div className={`intro-viewport${showStartButton ? ' intro-viewport--ready' : ''}`} inert={appStage === 'forming' || undefined}>
         <div className="intro-content">
       {showOverlay && (
         <div className="intro-panel" style={{
@@ -522,8 +528,8 @@ export const IntroScreen = () => {
                   <p style={{ margin: '0 0 8px 0' }}>{t.desktopClick}</p>
                 </>
               )}
-              <p style={{ margin: 0, color: '#777' }}>
-                {t.captured}
+              <p style={{ margin: 0, color: '#aaa' }}>
+                {isMobile ? t.mobileCaptured : t.captured}
               </p>
             </div>
           </div>
@@ -571,8 +577,8 @@ export const IntroScreen = () => {
               <div className="intro-detection" style={{
                 marginTop: '15px',
                 fontFamily: '"Press Start 2P", sans-serif',
-                fontSize: '0.45rem',
-                color: '#555',
+                fontSize: '0.7rem',
+                color: '#aaa',
                 letterSpacing: '2px',
               }}>
                 {isMobile ? t.gyroscope : t.cursor} {t.detected}
@@ -603,28 +609,17 @@ export const IntroScreen = () => {
         </div>
       )}
 
-          <div className="intro-disclaimer" style={{
-            textAlign: 'center',
-            fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Kranky", sans-serif',
-            fontSize: language === 'ja' ? '0.65rem' : '0.8rem',
-            color: '#555',
-            lineHeight: 1.5,
-            zIndex: 1,
-          }}>
-            {t.disclaimer}
-          </div>
-        </div>
-      </div>
-
       {showStartButton && (
-        <div style={{
-          position: 'absolute',
-          top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+        <div className="intro-start-area" style={{
+          maxWidth: 'calc(100% - 32px)',
+          position: 'relative',
+          flexShrink: 0,
+          marginBlock: 'auto',
           zIndex: 10,
           animation: 'fadeInUp 0.8s ease-out forwards',
         }}>
           {countdown !== null ? (
-            <div style={{
+            <div role="status" aria-live="polite" style={{
               fontFamily: '"Press Start 2P", system-ui',
               fontSize: '4rem',
               color: WARM_GOLD,
@@ -672,6 +667,19 @@ export const IntroScreen = () => {
         </div>
       )}
 
+          <div className="intro-disclaimer" style={{
+            textAlign: 'center',
+            fontFamily: language === 'ja' ? '"Shizuru", system-ui' : '"Kranky", sans-serif',
+            fontSize: language === 'ja' ? '0.65rem' : '0.8rem',
+            color: '#aaa',
+            lineHeight: 1.5,
+            zIndex: 1,
+          }}>
+            {t.disclaimer}
+          </div>
+        </div>
+      </div>
+
       <style>{`
         @keyframes crosshair-glow {
           0%, 100% { box-shadow: 0 0 0 0 rgba(230,199,137,0.2), 0 0 12px rgba(230,199,137,0.1); }
@@ -682,8 +690,8 @@ export const IntroScreen = () => {
           50% { opacity: 0.06; transform: translate(-50%, -50%) scale(1.05); }
         }
         @keyframes fadeInUp {
-          0% { opacity: 0; transform: translate(-50%, -40%); }
-          100% { opacity: 1; transform: translate(-50%, -50%); }
+          0% { opacity: 0; transform: translateY(12px); }
+          100% { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </div>

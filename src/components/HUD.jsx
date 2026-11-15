@@ -92,7 +92,7 @@ export const HUD = () => {
   const overflowCount = Math.max(0, capturedLyrics.length - MAX_GALLERY_DISPLAY);
 
   return (
-    <div style={{
+    <div inert={isPaused || appStatus === 'results' || undefined} style={{
       position: 'absolute',
       top: 0, left: 0, width: '100%', height: '100%',
       zIndex: 10,
@@ -103,12 +103,12 @@ export const HUD = () => {
       color: 'white',
       fontFamily: bodyFont,
     }}>
-      <div style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ margin: 0, textShadow: '0 2px 8px rgba(0,0,0,0.6)', fontSize: '1.1rem', fontWeight: 500, letterSpacing: '3px', fontFamily: '"Press Start 2P", sans-serif' }}>
-          SCORE: <span style={{ color: WARM_GOLD, fontWeight: 600 }}>{score}</span>
+      <div className="hud-header" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2 className="hud-score" style={{ margin: 0, textShadow: '0 2px 8px rgba(0,0,0,0.6)', fontSize: '1.1rem', fontWeight: 500, letterSpacing: '3px', fontFamily: '"Press Start 2P", sans-serif' }}>
+          {language === 'ja' ? 'スコア' : 'SCORE'}: <span style={{ color: WARM_GOLD, fontWeight: 600 }}>{score}</span>
         </h2>
         {appStatus === 'playing' && (
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <div className="hud-controls" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
             {/* AR Button only shown on mobile devices */}
             {isMobile && (
               <button
@@ -127,29 +127,29 @@ export const HUD = () => {
                     xrStore.getState().session?.end().catch(console.error);
                   } else {
                     if (!navigator.xr) {
-                      alert("WebXR AR is not supported on this browser. Try using Google Chrome for Android, or a WebXR viewer app.");
+                      alert(language === 'ja' ? 'このブラウザーはWebXR ARに対応していません。Android版Chromeなどの対応ブラウザーをお試しください。' : 'WebXR AR is not supported on this browser. Try using Google Chrome for Android, or a WebXR viewer app.');
                       return;
                     }
                     xrStore.enterAR().catch(err => {
                       console.error("AR failed", err);
-                      alert("Failed to start AR. Make sure camera permissions are granted.");
+                      alert(language === 'ja' ? 'ARを開始できませんでした。カメラへのアクセスを許可してください。' : 'Failed to start AR. Make sure camera permissions are granted.');
                       useStore.getState().setArMode(false);
                     });
                   }
                 }}
               >
-                {arMode ? 'DISABLE AR' : 'AR VIEWFINDER'}
+                {language === 'ja' ? (arMode ? 'ARを終了' : 'AR表示') : (arMode ? 'DISABLE AR' : 'AR VIEWFINDER')}
               </button>
             )}
             <button type="button" style={{
-              fontSize: '0.7rem', letterSpacing: '2px', color: '#887766',
+              fontSize: '0.7rem', letterSpacing: '2px', color: '#cbb79d',
               textTransform: 'uppercase', pointerEvents: 'auto', cursor: 'pointer',
               fontFamily: '"Press Start 2P", sans-serif',
               background: 'transparent', border: 0, padding: '8px',
             }}
               onClick={() => useStore.getState().togglePause()}
             >
-              [ESC] Pause
+              {language === 'ja' ? '一時停止' : (isMobile ? 'Pause' : '[ESC] Pause')}
             </button>
           </div>
         )}
@@ -221,12 +221,12 @@ export const HUD = () => {
             onMouseOver={(e) => { if (appStatus === 'ready') { e.target.style.background = WARM_GOLD; e.target.style.color = '#0a0a0a'; } }}
             onMouseOut={(e) => { e.target.style.background = 'transparent'; e.target.style.color = appStatus === 'ready' ? WARM_GOLD : '#556'; }}
           >
-            {appStatus === 'loading' ? 'Loading Track...' : 'Start'}
+            {language === 'ja' ? (appStatus === 'loading' ? '読み込み中...' : 'スタート') : (appStatus === 'loading' ? 'Loading Track...' : 'Start')}
           </button>
         </div>
       )}
 
-      <div style={{
+      <div className="hud-gallery" style={{
         padding: '16px 20px',
         display: 'flex',
         gap: '8px',
