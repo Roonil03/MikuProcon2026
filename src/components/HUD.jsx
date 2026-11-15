@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useStore, MAX_GALLERY_DISPLAY } from '../store/useStore';
 import { playHoverSound } from '../lib/soundEffects';
 import { attachCursorInput } from '../lib/cursorInput';
 import { xrStore } from '../lib/xrStore';
+import { canOfferAR } from '../lib/inputCapabilities';
 
 const WARM_GOLD = 'rgba(230, 199, 137, 1)';
 const WARM_GOLD_HALF = 'rgba(230, 199, 137, 0.5)';
@@ -14,12 +15,20 @@ export const HUD = () => {
   const isPaused = useStore(state => state.isPaused);
   const arMode = useStore(state => state.arMode);
   const isMobile = useStore(state => state.isMobile);
+  const orientationActive = useStore(state => state.orientationActive);
   const language = useStore(state => state.language);
   const crosshairRef = useRef(null);
+  const [arSupported, setArSupported] = useState(false);
 
   const bodyFont = language === 'ja'
     ? '"Shizuru", system-ui'
     : '"Kranky", sans-serif';
+
+  useEffect(() => {
+    let mounted = true;
+    canOfferAR().then(supported => { if (mounted) setArSupported(supported); });
+    return () => { mounted = false; };
+  }, []);
 
   useEffect(() => {
     return attachCursorInput(window, useStore.getState, (x, y) => {
@@ -29,6 +38,13 @@ export const HUD = () => {
       useStore.getState().setCursorPosition(x / window.innerWidth, y / window.innerHeight);
     });
   }, []);
+
+  useEffect(() => {
+    if (isMobile && orientationActive && crosshairRef.current) {
+      crosshairRef.current.style.transform = 'translate3d(calc(50vw - 50px), calc(50vh - 50px), 0)';
+      useStore.getState().setCursorPosition(0.5, 0.5);
+    }
+  }, [isMobile, orientationActive]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -82,8 +98,8 @@ export const HUD = () => {
         </h2>
         {appStatus === 'playing' && (
           <div className="hud-controls" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-            {/* AR Button only shown on mobile devices */}
-            {isMobile && (
+            {/* AR remains available when a tablet's primary pointer is a trackpad. */}
+            {(arMode || arSupported) && (
               <button
                 style={{
                   padding: '8px 16px',
