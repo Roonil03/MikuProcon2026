@@ -13,6 +13,8 @@ import { CharacterParticles } from './CharacterParticles';
 import { xrStore } from '../lib/xrStore';
 import { attachXRSelect } from '../lib/xrInput';
 import { createCaptureEngine, lowerBound } from '../lib/captureEngine';
+import { usePrimaryTouch } from '../lib/inputCapabilities';
+import { canUseOrientation, hasRecentOrientation, readOrientation } from '../lib/orientationInput';
 
 // Asynchronously load the WebAssembly module
 import initWasm from '../../build/release.wasm?init';
@@ -174,44 +176,44 @@ const SoundscapeCorridor = () => {
 const CameraController = () => {
   const { camera } = useThree();
   const targetRotation = useRef({ x: 0, y: 0 });
-  const hasGyroscope = useRef(false);
+  const isMobile = usePrimaryTouch();
+  const lastOrientation = useRef(-Infinity);
   const requiresGyroscopePermission = useRef(false);
 
   useEffect(() => {
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    useStore.getState().setIsMobile(isTouchDevice);
-
-    if (isTouchDevice && window.DeviceOrientationEvent) {
+    useStore.getState().setIsMobile(isMobile);
+    lastOrientation.current = -Infinity;
+    useStore.getState().setOrientationActive(false);
+    if (isMobile && window.DeviceOrientationEvent) {
       const requiresPermission = typeof window.DeviceOrientationEvent.requestPermission === 'function';
       requiresGyroscopePermission.current = requiresPermission;
-      hasGyroscope.current = requiresPermission
-        ? useStore.getState().orientationPermission === 'granted'
-        : true;
-
       const handleOrientation = (event) => {
-        if (!hasGyroscope.current) return;
-        const beta = event.beta || 0;
-        const gamma = event.gamma || 0;
-        targetRotation.current.x = THREE.MathUtils.clamp(beta * 0.01, -0.5, 0.5);
-        targetRotation.current.y = THREE.MathUtils.clamp(gamma * 0.01, -0.5, 0.5);
+        if (!canUseOrientation(useStore.getState(), requiresPermission)) return;
+        const rotation = readOrientation(event);
+        if (!rotation) return;
+        targetRotation.current = rotation;
+        lastOrientation.current = performance.now();
       };
 
       window.addEventListener('deviceorientation', handleOrientation);
-      return () => window.removeEventListener('deviceorientation', handleOrientation);
+      return () => {
+        window.removeEventListener('deviceorientation', handleOrientation);
+        useStore.getState().setOrientationActive(false);
+      };
     }
 
     return undefined;
-  }, []);
+  }, [isMobile]);
 
   /* eslint-disable react-hooks/immutability -- Three.js cameras are updated imperatively inside R3F's frame loop. */
   useFrame((state, delta) => {
-    const { isMobile, cursorPosition, sweepOffset, orientationPermission } = useStore.getState();
+    const storeState = useStore.getState();
+    const { cursorPosition, sweepOffset } = storeState;
+    const hasGyroscope = hasRecentOrientation(storeState, requiresGyroscopePermission.current,
+      lastOrientation.current, performance.now());
+    storeState.setOrientationActive(hasGyroscope);
 
-    if (requiresGyroscopePermission.current && orientationPermission === 'granted') {
-      hasGyroscope.current = true;
-    }
-
-    if (!isMobile || !hasGyroscope.current) {
+    if (!hasGyroscope) {
       const nx = cursorPosition.x * 2 - 1;
       const ny = cursorPosition.y * 2 - 1;
       targetRotation.current.x = -ny * 0.4;
@@ -375,6 +377,7 @@ const performCapture = (camera, pointer) => {
     capturedLyrics,
     captureLyric,
     isMobile,
+    arMode,
     shutterSpeed,
     sweepOffset,
   } = useStore.getState();
@@ -387,7 +390,7 @@ const performCapture = (camera, pointer) => {
   captureMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
   const capturedIds = getCapturedIds(capturedLyrics);
   const closestId = captureEngine(lyricsData, capturedIds, currentPosition, shutterSpeed,
-    captureMatrix.elements, ndcX, ndcY, isMobile);
+    captureMatrix.elements, ndcX, ndcY, isMobile || arMode);
   const closestLyric = closestId === -1 ? null : getLyricIndex(lyricsData).get(closestId);
   const minDiff = closestLyric ? Math.abs(closestLyric.startTime - currentPosition) : Infinity;
 
@@ -438,14 +441,13 @@ const HitDetectionLayer = () => {
   return null;
 };
 
-const isTouchDevice = typeof window !== 'undefined'
-  && (window.matchMedia?.('(pointer: coarse)').matches || navigator.maxTouchPoints > 0);
 const hasLimitedHardware = typeof navigator !== 'undefined'
   && ((navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4);
-const useReducedEffects = isTouchDevice || hasLimitedHardware;
-const maxDevicePixelRatio = useReducedEffects ? 1.25 : 1.5;
 
 export const Scene = () => {
+  const isMobile = usePrimaryTouch();
+  const useReducedEffects = isMobile || hasLimitedHardware;
+  const maxDevicePixelRatio = useReducedEffects ? 1.25 : 1.5;
   const arMode = useStore(state => state.arMode);
   const isPaused = useStore(state => state.isPaused);
   const appStatus = useStore(state => state.appStatus);
@@ -470,7 +472,7 @@ export const Scene = () => {
           <HitDetectionLayer />
           
           {!arMode && <SoundscapeCorridor />}
-          {!arMode && !useReducedEffects && <DynamicPostProcessing isMobileDevice={isTouchDevice} />}
+          {!arMode && !useReducedEffects && <DynamicPostProcessing isMobileDevice={isMobile} />}
           <ScenePreparation />
         </XR>
       </Canvas>

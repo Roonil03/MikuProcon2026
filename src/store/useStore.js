@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { getCapturedIds, getLyricIndex } from '../lib/captureLookup.js';
+import { hasPrimaryTouch } from '../lib/inputCapabilities.js';
 
 const MAX_GALLERY_DISPLAY = 12;
 
@@ -18,8 +19,9 @@ export const useStore = create((set, get) => ({
   player: null,
   currentPosition: 0,
   shutterSpeed: 1.0,
-  isMobile: false,
+  isMobile: hasPrimaryTouch(),
   orientationPermission: 'unknown',
+  orientationActive: false,
   isPaused: false,
   cursorPosition: { x: 0.5, y: 0.5 },
   arMode: false,
@@ -68,8 +70,13 @@ export const useStore = create((set, get) => ({
     if (get().currentPosition !== position) set({ currentPosition: position });
   },
   setShutterSpeed: (speed) => set({ shutterSpeed: Math.max(0.1, Math.min(3.0, speed)) }),
-  setIsMobile: (val) => set({ isMobile: val }),
+  setIsMobile: (val) => {
+    if (get().isMobile !== val) set({ isMobile: val, orientationActive: false });
+  },
   setOrientationPermission: (permission) => set({ orientationPermission: permission }),
+  setOrientationActive: (active) => {
+    if (get().orientationActive !== active) set({ orientationActive: active });
+  },
   setCursorPosition: (x, y) => {
     const previous = get().cursorPosition;
     if (previous.x !== x || previous.y !== y) set({ cursorPosition: { x, y } });
@@ -118,8 +125,9 @@ export const useStore = create((set, get) => ({
     player: null,
     currentPosition: 0,
     shutterSpeed: 1.0,
-    isMobile: false,
+    isMobile: hasPrimaryTouch(),
     orientationPermission: 'unknown',
+    orientationActive: false,
     isPaused: false,
     cursorPosition: { x: 0.5, y: 0.5 },
     arMode: false,
