@@ -8,7 +8,7 @@ export function createPlaybackListeners(player, store) {
     onTimerReady: () => store.getState().markTimerReady(),
     onPlay: () => {
       const state = store.getState();
-      if (state.appStage !== 'ready' || state.appStatus === 'results') return;
+      if (state.appStage !== 'ready' || !state.gamePrepared || state.appStatus === 'results') return;
       if (state.appStatus === 'intro') {
         hasProgress = false;
         lastBeat = null;

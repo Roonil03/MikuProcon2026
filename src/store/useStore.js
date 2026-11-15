@@ -3,6 +3,16 @@ import { getCapturedIds, getLyricIndex } from '../lib/captureLookup.js';
 
 const MAX_GALLERY_DISPLAY = 12;
 
+const withPreparedPlayback = (state, changes) => {
+  const next = { ...state, ...changes };
+  // A managed host may start before formation or scene preparation finishes.
+  // Read the current SDK state so an intervening pause/stop is respected too.
+  if (next.appStage === 'ready' && next.gamePrepared && next.appStatus === 'intro' && next.player?.isPlaying) {
+    return { ...changes, appStatus: 'playing', isPaused: false, playbackPending: false, playbackError: false };
+  }
+  return changes;
+};
+
 export const useStore = create((set, get) => ({
   appStatus: 'intro',
   appStage: 'intro',
@@ -31,31 +41,31 @@ export const useStore = create((set, get) => ({
   language: 'en',
 
   setAppStatus: (status) => set({ appStatus: status }),
-  setAppStage: (stage) => set({ appStage: stage }),
-  setGamePrepared: (prepared) => set({ gamePrepared: prepared }),
+  setAppStage: (stage) => set(state => withPreparedPlayback(state, { appStage: stage })),
+  setGamePrepared: (prepared) => set(state => withPreparedPlayback(state, { gamePrepared: prepared })),
   markTrackReady: () => {
     const state = get();
     const appStage = state.appStage === 'loading_track'
       ? (state.lyricsData.length > 0 ? (state.timerReady ? 'ready' : 'loading_track') : 'track_unavailable')
       : state.appStage;
-    set({ trackReady: true, appStage });
+    set(withPreparedPlayback(state, { trackReady: true, appStage }));
   },
   markTimerReady: () => {
     const state = get();
-    set({
+    set(withPreparedPlayback(state, {
       timerReady: true,
       appStage: state.appStage === 'loading_track' && state.trackReady && state.lyricsData.length > 0
         ? 'ready' : state.appStage,
-    });
+    }));
   },
   completeIntroFormation: () => {
     const state = get();
     if (state.appStage === 'track_unavailable') return;
-    set({
+    set(withPreparedPlayback(state, {
       appStage: !state.trackReady
         ? 'loading_track'
         : (state.lyricsData.length > 0 ? (state.timerReady ? 'ready' : 'loading_track') : 'track_unavailable'),
-    });
+    }));
   },
   setLanguage: (lang) => set({ language: lang }),
   incrementScore: (amount) => set((state) => ({ score: state.score + amount })),
