@@ -1,17 +1,13 @@
 const fs = require('fs');
+const path = require('node:path');
 const sharp = require('sharp');
 
 async function main() {
-    console.log("Fetching image...");
-    const buffer = fs.readFileSync('miku.webp');
+    const source = path.join(__dirname, 'miku.webp');
 
     console.log("Processing image with sharp...");
-    const image = sharp(Buffer.from(buffer));
-    const metadata = await image.metadata();
-    const width = metadata.width;
-    const height = metadata.height;
-
-    const raw = await image.ensureAlpha().raw().toBuffer();
+    const { data: raw, info: { width, height } } = await sharp(source)
+        .toColourspace('srgb').ensureAlpha().raw().toBuffer({ resolveWithObject: true });
 
     console.log(`Image size: ${width}x${height}`);
 
@@ -50,46 +46,37 @@ async function main() {
 
     console.log(`Found ${edges.length} edge pixels.`);
 
-    const targetPoints = 50000;
-    const sampledEdges = [];
-    
-    if (edges.length > 0) {
-        const step = Math.max(1, edges.length / targetPoints);
-        for (let i = 0; i < targetPoints; i++) {
-            const index = Math.floor((i * step) % edges.length);
-            sampledEdges.push(edges[index]);
-        }
-    }
+    if (edges.length === 0) throw new Error('No silhouette edges found.');
+    const count = Math.min(edges.length, 12500);
 
     const scale = 8.0;
-    const pointsCode = sampledEdges.map(p => {
+    const pointsCode = Array.from({ length: count }, (_, i) => {
+        const p = edges[Math.floor(i * edges.length / count)];
         const nx = ((p.x / width) - 0.5) * scale;
         const ny = (0.5 - (p.y / height)) * scale * (height / width);
         const nz = (Math.random() - 0.5) * 0.1;
-        return `{ x: ${nx.toFixed(4)}, y: ${ny.toFixed(4)}, z: ${nz.toFixed(4)} }`;
+        return [nx, ny, nz].map(value => Number(value.toFixed(4))).join(', ');
     });
 
-    const fileContent = `export function generateMikuSilhouette() {
-  const points = [
-    ${pointsCode.join(',\n    ')}
-  ];
+    const fileContent = `const coordinates = new Float32Array([
+  ${pointsCode.join(',\n  ')}
+]);
 
-  while (points.length < 50000) {
-    const source = points[Math.floor(Math.random() * points.length)];
-    if (!source) break;
-    points.push({
-      x: source.x + (Math.random() - 0.5) * 0.05,
-      y: source.y + (Math.random() - 0.5) * 0.05,
-      z: source.z + (Math.random() - 0.5) * 0.05,
-    });
+export function generateMikuSilhouette() {
+  const points = [];
+  for (let i = 0; i < coordinates.length; i += 3) {
+    points.push({ x: coordinates[i], y: coordinates[i + 1], z: coordinates[i + 2] });
   }
 
   return points;
 }
 `;
 
-    fs.writeFileSync('../src/lib/mikuSilhouette.js', fileContent);
+    fs.writeFileSync(path.join(__dirname, '../src/lib/mikuSilhouette.js'), fileContent);
     console.log("Successfully wrote points to src/lib/mikuSilhouette.js");
 }
 
-main().catch(console.error);
+main().catch(error => {
+    console.error(error.message);
+    process.exitCode = 1;
+});
